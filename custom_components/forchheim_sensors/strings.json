@@ -1,17 +1,15 @@
 {
-  "title": "Forchheim Sensordaten",
+  "title": "Digitales Forchheim",
   "config": {
     "step": {
       "user": {
-        "title": "Forchheimer Wetterstation einrichten",
-        "description": "Wähle eine öffentliche Wetterstation. Die Entfernung wird anhand des Home-Assistant-Standorts berechnet.",
+        "title": "Digitales Forchheim einrichten",
+        "description": "Richtet alle öffentlichen Wetter-, Lade-, Verkehrs- und Stadtdaten automatisch ein.",
         "data": {
-          "station": "Wetterstation",
           "scan_interval": "Aktualisierungsintervall"
         },
         "data_description": {
-          "station": "Standort der öffentlichen Wetterstation",
-          "scan_interval": "Zeit zwischen zwei Abfragen in Sekunden"
+          "scan_interval": "Zeit zwischen Live-Abfragen in Sekunden"
         }
       }
     },
@@ -21,13 +19,13 @@
       "invalid_station": "Die ausgewählte Station wurde nicht gefunden."
     },
     "abort": {
-      "already_configured": "Diese Wetterstation ist bereits eingerichtet."
+      "already_configured": "Digitales Forchheim ist bereits eingerichtet."
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "Forchheim Sensordaten konfigurieren",
+        "title": "Digitales Forchheim konfigurieren",
         "data": {
           "scan_interval": "Aktualisierungsintervall"
         },
@@ -39,14 +37,36 @@
   },
   "entity": {
     "sensor": {
-      "temperature": {"name": "Temperatur"},
-      "humidity": {"name": "Luftfeuchtigkeit"},
-      "pressure": {"name": "Luftdruck"},
-      "wind_speed": {"name": "Windgeschwindigkeit"},
-      "wind_direction": {"name": "Windrichtung"},
-      "dew_point": {"name": "Taupunkt"},
-      "precipitation_hour": {"name": "Niederschlag pro Stunde"}
+      "temperature": {
+        "name": "Temperatur"
+      },
+      "humidity": {
+        "name": "Luftfeuchtigkeit"
+      },
+      "pressure": {
+        "name": "Luftdruck"
+      },
+      "wind_speed": {
+        "name": "Windgeschwindigkeit"
+      },
+      "wind_direction": {
+        "name": "Windrichtung"
+      },
+      "dew_point": {
+        "name": "Taupunkt"
+      },
+      "precipitation_hour": {
+        "name": "Niederschlag pro Stunde"
+      },
+      "battery": {
+        "name": "Batterie"
+      },
+      "surface_temperature": {
+        "name": "Oberflächentemperatur"
+      },
+      "battery_voltage": {
+        "name": "Batteriespannung"
+      }
     }
   }
 }
-

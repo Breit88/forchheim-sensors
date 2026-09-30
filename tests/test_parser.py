@@ -5,7 +5,10 @@ from datetime import UTC, datetime
 from custom_components.forchheim_sensors.parser import (
     ForchheimInvalidResponseError,
     parse_measurements,
+    parse_places,
+    parse_station_measurements,
     parse_stations,
+    parse_traffic,
 )
 
 
@@ -89,3 +92,68 @@ def test_reject_empty_measurements() -> None:
         pass
     else:
         raise AssertionError("Empty measurements must be rejected")
+
+
+def test_parse_batch_measurements() -> None:
+    """Measurements from several stations remain separated."""
+    payload = {
+        "results": {
+            "A": {
+                "frames": [
+                    {
+                        "schema": {
+                            "fields": [
+                                {"name": "DTwin_DTwinID"},
+                                {"name": "Datapoint_Title"},
+                                {"name": "Event_Value"},
+                                {"name": "Event_DateTime"},
+                            ]
+                        },
+                        "data": {
+                            "values": [
+                                ["19-843", "19-844"],
+                                ["Temperatur", "Temperatur"],
+                                [21.5, 20.0],
+                                [1_790_785_528_848, 1_790_785_528_848],
+                            ]
+                        },
+                    }
+                ]
+            }
+        }
+    }
+    result = parse_station_measurements(payload)
+    assert result["19-843"]["Temperatur"].value == 21.5
+    assert result["19-844"]["Temperatur"].value == 20.0
+
+
+def test_parse_places_and_traffic() -> None:
+    """GeoJSON place and traffic data are reduced to HA-safe models."""
+    place_payload = {
+        "features": [
+            {
+                "properties": {
+                    "fid": 7,
+                    "art": "E-Ladesäule (PKW)",
+                    "strasse": "Haidfeldstraße",
+                    "hausnr": "8",
+                },
+                "geometry": {"coordinates": [11.06, 49.72]},
+            }
+        ]
+    }
+    place = parse_places(place_payload, "place")[0]
+    assert place.address == "Haidfeldstraße 8"
+    assert place.category == "E-Ladesäule (PKW)"
+
+    traffic = parse_traffic(
+        {
+            "features": [
+                {"properties": {"speed": 20, "count": 10}},
+                {"properties": {"speed": 40, "count": 30}},
+            ]
+        },
+        "werktag_10-15",
+    )
+    assert traffic.average_speed == 35.0
+    assert traffic.observations == 40

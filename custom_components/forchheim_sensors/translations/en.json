@@ -1,17 +1,15 @@
 {
-  "title": "Forchheim Sensor Data",
+  "title": "Digital Forchheim",
   "config": {
     "step": {
       "user": {
-        "title": "Set up a Forchheim weather station",
-        "description": "Select a public weather station. Distance is calculated from the Home Assistant location.",
+        "title": "Set up Digital Forchheim",
+        "description": "Automatically adds all public weather, charging, traffic, and city data.",
         "data": {
-          "station": "Weather station",
           "scan_interval": "Update interval"
         },
         "data_description": {
-          "station": "Location of the public weather station",
-          "scan_interval": "Seconds between requests"
+          "scan_interval": "Seconds between live updates"
         }
       }
     },
@@ -21,28 +19,54 @@
       "invalid_station": "The selected station was not found."
     },
     "abort": {
-      "already_configured": "This weather station is already configured."
+      "already_configured": "Digital Forchheim is already configured."
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "Configure Forchheim Sensor Data",
-        "data": {"scan_interval": "Update interval"},
-        "data_description": {"scan_interval": "Seconds between requests"}
+        "title": "Configure Digital Forchheim",
+        "data": {
+          "scan_interval": "Update interval"
+        },
+        "data_description": {
+          "scan_interval": "Seconds between requests"
+        }
       }
     }
   },
   "entity": {
     "sensor": {
-      "temperature": {"name": "Temperature"},
-      "humidity": {"name": "Humidity"},
-      "pressure": {"name": "Atmospheric pressure"},
-      "wind_speed": {"name": "Wind speed"},
-      "wind_direction": {"name": "Wind direction"},
-      "dew_point": {"name": "Dew point"},
-      "precipitation_hour": {"name": "Hourly precipitation"}
+      "temperature": {
+        "name": "Temperature"
+      },
+      "humidity": {
+        "name": "Humidity"
+      },
+      "pressure": {
+        "name": "Atmospheric pressure"
+      },
+      "wind_speed": {
+        "name": "Wind speed"
+      },
+      "wind_direction": {
+        "name": "Wind direction"
+      },
+      "dew_point": {
+        "name": "Dew point"
+      },
+      "precipitation_hour": {
+        "name": "Hourly precipitation"
+      },
+      "battery": {
+        "name": "Battery"
+      },
+      "surface_temperature": {
+        "name": "Surface temperature"
+      },
+      "battery_voltage": {
+        "name": "Battery voltage"
+      }
     }
   }
 }
-

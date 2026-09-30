@@ -1,6 +1,5 @@
 {
-  "name": "Forchheim Sensordaten",
-  "homeassistant": "2025.1.0",
+  "name": "Digitales Forchheim",
+  "homeassistant": "2026.9.0",
   "render_readme": true
 }
-

@@ -1,12 +1,14 @@
 {
   "domain": "forchheim_sensors",
-  "name": "Forchheim Sensordaten",
-  "codeowners": ["@Breit88"],
+  "name": "Digitales Forchheim",
+  "codeowners": [
+    "@Breit88"
+  ],
   "config_flow": true,
   "documentation": "https://github.com/Breit88/forchheim-sensors",
   "integration_type": "service",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/Breit88/forchheim-sensors/issues",
   "requirements": [],
-  "version": "0.1.1"
+  "version": "0.2.0"
 }
