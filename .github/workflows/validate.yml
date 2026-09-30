@@ -23,6 +23,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.14"
-      - run: pip install homeassistant==2026.9.4 pytest==8.4.2 pytest-homeassistant-custom-component
+      - run: pip install pytest-homeassistant-custom-component==0.13.367
       - run: pytest -q
       - run: pip install ruff && ruff format --check . && ruff check .
