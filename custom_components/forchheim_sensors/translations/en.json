@@ -1,0 +1,48 @@
+{
+  "title": "Forchheim Sensor Data",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up a Forchheim weather station",
+        "description": "Select a public weather station. Distance is calculated from the Home Assistant location.",
+        "data": {
+          "station": "Weather station",
+          "scan_interval": "Update interval"
+        },
+        "data_description": {
+          "station": "Location of the public weather station",
+          "scan_interval": "Seconds between requests"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "The public Forchheim sensor service is currently unavailable.",
+      "invalid_response": "The data source returned an unexpected response.",
+      "invalid_station": "The selected station was not found."
+    },
+    "abort": {
+      "already_configured": "This weather station is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Configure Forchheim Sensor Data",
+        "data": {"scan_interval": "Update interval"},
+        "data_description": {"scan_interval": "Seconds between requests"}
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "temperature": {"name": "Temperature"},
+      "humidity": {"name": "Humidity"},
+      "pressure": {"name": "Atmospheric pressure"},
+      "wind_speed": {"name": "Wind speed"},
+      "wind_direction": {"name": "Wind direction"},
+      "dew_point": {"name": "Dew point"},
+      "precipitation_hour": {"name": "Hourly precipitation"}
+    }
+  }
+}
+

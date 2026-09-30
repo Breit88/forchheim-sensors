@@ -1,0 +1,52 @@
+{
+  "title": "Forchheim Sensordaten",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Forchheimer Wetterstation einrichten",
+        "description": "Wähle eine öffentliche Wetterstation. Die Entfernung wird anhand des Home-Assistant-Standorts berechnet.",
+        "data": {
+          "station": "Wetterstation",
+          "scan_interval": "Aktualisierungsintervall"
+        },
+        "data_description": {
+          "station": "Standort der öffentlichen Wetterstation",
+          "scan_interval": "Zeit zwischen zwei Abfragen in Sekunden"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Die öffentlichen Forchheimer Sensordaten sind momentan nicht erreichbar.",
+      "invalid_response": "Die Datenquelle hat ein unerwartetes Format geliefert.",
+      "invalid_station": "Die ausgewählte Station wurde nicht gefunden."
+    },
+    "abort": {
+      "already_configured": "Diese Wetterstation ist bereits eingerichtet."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Forchheim Sensordaten konfigurieren",
+        "data": {
+          "scan_interval": "Aktualisierungsintervall"
+        },
+        "data_description": {
+          "scan_interval": "Zeit zwischen zwei Abfragen in Sekunden"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "temperature": {"name": "Temperatur"},
+      "humidity": {"name": "Luftfeuchtigkeit"},
+      "pressure": {"name": "Luftdruck"},
+      "wind_speed": {"name": "Windgeschwindigkeit"},
+      "wind_direction": {"name": "Windrichtung"},
+      "dew_point": {"name": "Taupunkt"},
+      "precipitation_hour": {"name": "Niederschlag pro Stunde"}
+    }
+  }
+}
+
