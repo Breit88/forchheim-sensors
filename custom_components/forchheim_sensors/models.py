@@ -58,7 +58,6 @@ class CityData:
 
     stations: tuple[Station, ...]
     measurements: dict[str, dict[str, Measurement]]
-    charging_sites: tuple[Place, ...]
     places: tuple[Place, ...]
     playgrounds: tuple[Place, ...]
     transit_stops: tuple[Place, ...]

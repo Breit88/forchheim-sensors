@@ -85,11 +85,10 @@ class ForchheimDataUpdateCoordinator(DataUpdateCoordinator[CityData]):
                 )
             else:
                 traffic = traffic_result
-            charging = [place for place in places if "Ladesäule" in place.category]
+            places = [place for place in places if "Ladesäule" not in place.category]
             return CityData(
                 stations=tuple(stations),
                 measurements=measurements_result,
-                charging_sites=tuple(charging),
                 places=tuple(places),
                 playgrounds=tuple(playgrounds),
                 transit_stops=tuple(transit),

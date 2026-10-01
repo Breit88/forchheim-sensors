@@ -22,7 +22,6 @@ async def async_get_config_entry_diagnostics(
             for station in data.stations
         ],
         "measurement_station_count": len(data.measurements),
-        "charging_site_count": len(data.charging_sites),
         "place_count": len(data.places),
         "playground_count": len(data.playgrounds),
         "transit_stop_count": len(data.transit_stops),

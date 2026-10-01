@@ -16,8 +16,6 @@ Nach der Installation und einem Neustart:
 - alle 4 vollständigen Forchheimer Wetterstationen
 - alle 16 öffentlichen Temperatur- und Feuchtesensoren
 - Fahrbahnsensor Lila Brücke mit Luft- und Oberflächentemperatur
-- alle 13 PKW- und 4 E-Bike-Ladestandorte als eigene Entitäten mit Entfernung,
-  Adresse und Kartenkoordinaten
 - Verkehrsprofile passend zu Werktag/Wochenende und aktueller Tageszeit mit
   Durchschnittsgeschwindigkeit und Zahl der Messungen
 - aktive Baustellen mit Zeitraum und Adresse
@@ -49,9 +47,13 @@ Abfrage aktualisiert. Das Intervall ist zwischen 60 und 3600 Sekunden
 konfigurierbar. Orts-, Haltestellen- und Verkehrsdateien werden intern gecacht,
 um die öffentlichen Server nicht unnötig zu belasten.
 
+Alle numerischen Wetter-, Klima-, Fahrbahn- und Verkehrswerte besitzen eine
+Home-Assistant-Zustandsklasse. Der Recorder zeichnet ihre Zustände auf und
+Home Assistant erzeugt Langzeitstatistiken, sodass die Werte direkt in
+Verlaufs- und Statistikdiagrammen verwendet werden können.
+
 Die Floating-Car-Verkehrsdaten sind zeitabhängige Verkehrsprofile der Stadt und
-keine sekundengenauen Live-Staumeldungen. Ladestandorte enthalten Position und
-veröffentlichte Ausstattung, aber keine Live-Belegungsanzeige.
+keine sekundengenauen Live-Staumeldungen.
 
 ## Datenquelle
 

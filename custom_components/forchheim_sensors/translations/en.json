@@ -4,7 +4,7 @@
     "step": {
       "user": {
         "title": "Set up Digital Forchheim",
-        "description": "Automatically adds all public weather, charging, traffic, and city data.",
+        "description": "Automatically adds all public weather, traffic, and city data.",
         "data": {
           "scan_interval": "Update interval"
         },

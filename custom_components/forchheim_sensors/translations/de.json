@@ -4,7 +4,7 @@
     "step": {
       "user": {
         "title": "Digitales Forchheim einrichten",
-        "description": "Richtet alle öffentlichen Wetter-, Lade-, Verkehrs- und Stadtdaten automatisch ein.",
+        "description": "Richtet alle öffentlichen Wetter-, Verkehrs- und Stadtdaten automatisch ein.",
         "data": {
           "scan_interval": "Aktualisierungsintervall"
         },

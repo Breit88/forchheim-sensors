@@ -6,6 +6,7 @@ from unittest.mock import patch
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -52,7 +53,7 @@ async def test_migrate_single_station_entry(hass: HomeAssistant) -> None:
     )
     entry.add_to_hass(hass)
     assert await async_migrate_entry(hass, entry)
-    assert entry.version == 2
+    assert entry.version == 3
     assert entry.unique_id == CITY_UNIQUE_ID
     assert entry.title == "Digitales Forchheim"
     assert dict(entry.data) == {}
@@ -95,7 +96,7 @@ async def test_entry_setup_creates_citywide_sensors(hass: HomeAssistant) -> None
     """A citywide entry loads measurement and summary sensor entities."""
     entry = MockConfigEntry(
         domain=DOMAIN,
-        version=2,
+        version=3,
         unique_id=CITY_UNIQUE_ID,
         title="Digitales Forchheim",
         data={},
@@ -136,7 +137,7 @@ async def test_entry_setup_creates_citywide_sensors(hass: HomeAssistant) -> None
     assert entry.state is ConfigEntryState.LOADED
     registry = er.async_get(hass)
     entities = er.async_entries_for_config_entry(registry, entry.entry_id)
-    assert len(entities) == 21
+    assert len(entities) == 19
     assert {entity.domain for entity in entities} == {"sensor"}
 
     temperature = next(
@@ -157,5 +158,54 @@ async def test_entry_setup_creates_citywide_sensors(hass: HomeAssistant) -> None
     assert traffic_state is not None
     assert traffic_state.state == "31.2"
 
+    for entity in entities:
+        state = hass.states.get(entity.entity_id)
+        assert state is not None
+        assert state.attributes["state_class"] == "measurement"
+
     assert await hass.config_entries.async_unload(entry.entry_id)
     assert entry.state is ConfigEntryState.NOT_LOADED
+
+
+async def test_migrate_removes_legacy_charging_entities(hass: HomeAssistant) -> None:
+    """The 0.3 migration removes only the former charging entities and devices."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        version=2,
+        unique_id=CITY_UNIQUE_ID,
+        title="Digitales Forchheim",
+        data={},
+    )
+    entry.add_to_hass(hass)
+    entity_registry = er.async_get(hass)
+    entity_registry.async_get_or_create(
+        "sensor",
+        DOMAIN,
+        "charging_old_site",
+        suggested_object_id="old_charging_site",
+        config_entry=entry,
+    )
+    entity_registry.async_get_or_create(
+        "sensor",
+        DOMAIN,
+        "19-843_temperature",
+        suggested_object_id="weather_temperature",
+        config_entry=entry,
+    )
+    device_registry = dr.async_get(hass)
+    device_registry.async_get_or_create(
+        config_entry_id=entry.entry_id,
+        identifiers={(DOMAIN, "charging_old_site")},
+        name="Old charging site",
+    )
+
+    assert await async_migrate_entry(hass, entry)
+    assert entry.version == 3
+    entities = er.async_entries_for_config_entry(entity_registry, entry.entry_id)
+    assert [entity.unique_id for entity in entities] == ["19-843_temperature"]
+    assert not any(
+        identifier.startswith("charging_")
+        for device in dr.async_entries_for_config_entry(device_registry, entry.entry_id)
+        for domain, identifier in device.identifiers
+        if domain == DOMAIN
+    )

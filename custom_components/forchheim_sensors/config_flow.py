@@ -51,7 +51,7 @@ def _schema(default: int) -> vol.Schema:
 class ForchheimSensorsConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle the Forchheim Sensors config flow."""
 
-    VERSION = 2
+    VERSION = 3
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None

@@ -186,12 +186,6 @@ async def async_setup_entry(
             if station.category in description.categories
         )
     entities.extend(
-        ForchheimChargingSensor(
-            coordinator, place, hass.config.latitude, hass.config.longitude
-        )
-        for place in data.charging_sites
-    )
-    entities.extend(
         _summary_entities(coordinator, hass.config.latitude, hass.config.longitude)
     )
     async_add_entities(entities)
@@ -266,88 +260,6 @@ class ForchheimMeasurementSensor(
             "station_type": self.station.category,
             "latitude": self.station.latitude,
             "longitude": self.station.longitude,
-        }
-
-
-class ForchheimChargingSensor(
-    CoordinatorEntity[ForchheimDataUpdateCoordinator], SensorEntity
-):
-    """Distance and metadata for one public charging site."""
-
-    _attr_has_entity_name = True
-    _attr_attribution = ATTRIBUTION
-    _attr_device_class = SensorDeviceClass.DISTANCE
-    _attr_native_unit_of_measurement = UnitOfLength.KILOMETERS
-    _attr_state_class = SensorStateClass.MEASUREMENT
-
-    def __init__(
-        self,
-        coordinator: ForchheimDataUpdateCoordinator,
-        place: Place,
-        home_latitude: float,
-        home_longitude: float,
-    ) -> None:
-        """Initialize a charging-site sensor."""
-        super().__init__(coordinator)
-        self.place_uid = place.uid
-        self.home_latitude = home_latitude
-        self.home_longitude = home_longitude
-        self._attr_unique_id = f"charging_{place.uid}"
-        self._attr_name = "Entfernung"
-        self._attr_icon = (
-            "mdi:bicycle-electric" if "E-Bike" in place.category else "mdi:ev-station"
-        )
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, f"charging_{place.uid}")},
-            name=f"{place.category} {place.address or place.name}",
-            manufacturer="Stadt Forchheim",
-            model="Öffentliche Ladestation",
-            configuration_url="https://dz.forchheim.de/",
-        )
-
-    @property
-    def place(self) -> Place | None:
-        """Return the current place record."""
-        return next(
-            (
-                place
-                for place in self.coordinator.data.charging_sites
-                if place.uid == self.place_uid
-            ),
-            None,
-        )
-
-    @property
-    def available(self) -> bool:
-        """Return whether the charging site still exists in the source."""
-        return super().available and self.place is not None
-
-    @property
-    def native_value(self) -> float | None:
-        """Return distance from home in kilometres."""
-        if (place := self.place) is None:
-            return None
-        return round(
-            _distance_km(
-                self.home_latitude,
-                self.home_longitude,
-                place.latitude,
-                place.longitude,
-            ),
-            2,
-        )
-
-    @property
-    def extra_state_attributes(self) -> dict[str, Any]:
-        """Return charging-site metadata."""
-        if (place := self.place) is None:
-            return {}
-        return {
-            "type": place.category,
-            "address": place.address,
-            "description": place.note,
-            "latitude": place.latitude,
-            "longitude": place.longitude,
         }
 
 
@@ -464,20 +376,6 @@ def _summary_entities(
             "Temperatur- und Feuchtesensoren",
             "mdi:thermometer-lines",
             count_stations("temperature"),
-        ),
-        ForchheimSummarySensor(
-            coordinator,
-            "car_charging_count",
-            "PKW-Ladestationen",
-            "mdi:ev-station",
-            count_places("E-Ladesäule (PKW)"),
-        ),
-        ForchheimSummarySensor(
-            coordinator,
-            "bike_charging_count",
-            "E-Bike-Ladestationen",
-            "mdi:bicycle-electric",
-            count_places("E-Ladesäule (E-Bike)"),
         ),
         ForchheimSummarySensor(
             coordinator,
