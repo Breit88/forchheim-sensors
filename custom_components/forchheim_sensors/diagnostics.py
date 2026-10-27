@@ -7,6 +7,7 @@ from typing import Any
 from homeassistant.core import HomeAssistant
 
 from . import ForchheimConfigEntry
+from .const import CONF_WASTE_LOCATION
 
 
 async def async_get_config_entry_diagnostics(
@@ -14,8 +15,11 @@ async def async_get_config_entry_diagnostics(
 ) -> dict[str, Any]:
     """Return non-sensitive diagnostics for a config entry."""
     data = entry.runtime_data.data
+    options = dict(entry.options)
+    if CONF_WASTE_LOCATION in options:
+        options[CONF_WASTE_LOCATION] = "<redacted>"
     return {
-        "entry": {"data": dict(entry.data), "options": dict(entry.options)},
+        "entry": {"data": dict(entry.data), "options": options},
         "last_update_success": entry.runtime_data.last_update_success,
         "stations": [
             {"uid": station.uid, "name": station.name, "category": station.category}
@@ -27,5 +31,6 @@ async def async_get_config_entry_diagnostics(
         "transit_stop_count": len(data.transit_stops),
         "construction_site_count": len(data.construction_sites),
         "traffic_period": data.traffic.period,
+        "waste_event_count": len(data.waste_events),
         "temporarily_unavailable_sources": ["Raumbelegung"],
     }

@@ -1,9 +1,13 @@
 # Entitäten und Attribute
 
-Die Integration legt die Messstellen als Home-Assistant-Geräte an. Die
+Die Integration legt ausgewählte Messstellen als Home-Assistant-Geräte an. Die
 Entitätsnamen werden aus Stationsname und Messgröße gebildet; Home Assistant
 erzeugt daraus die jeweilige `entity_id`. Deshalb können die IDs je nach
 Sprache und bereits vorhandenen Entitäten leicht abweichen.
+
+Stationen werden als Einheit ausgewählt: Alle ihre Messsensoren werden gemeinsam
+eingebunden. Eine abgewählte Station wird nicht abgefragt und ihre Entitäten
+werden deaktiviert. Bei Wiederwahl behalten sie ihre registrierten IDs.
 
 ## Messstellen
 
@@ -56,9 +60,20 @@ Zusätzlich gibt es zusammenfassende Sensoren für:
 - Entfernung zum nächsten Spielplatz in km
 - Entfernung zur nächsten aktiven Baustelle in km
 
+Die stadtweiten Zählwerte bleiben unabhängig von der Stationsauswahl und
+beschreiben weiterhin alle öffentlich verfügbaren Stationen.
+
 Die Entfernungssensoren enthalten zusätzliche Attribute wie Name, Adresse,
 Koordinaten und bei Haltestellen die verfügbaren Linien. Der Baustellensensor
 führt außerdem Details zu bis zu 20 aktiven Baustellen als Attribute.
+
+## Abfalltermine
+
+Wenn Abfalltermine aktiviert wurden, gibt es ein Gerät **Abfalltermine
+Forchheim** mit einem Kalender und vier Datumssensoren für die jeweils nächste
+Restmüll-, Bio-, Gelbe und Papiertonne. Weitere Terminarten bleiben im Kalender
+sichtbar. Der ausgewählte Abfuhrbereich kann unter **Konfigurieren** geändert
+werden. Siehe [Abfalltermine](waste.md).
 
 ## Bewusst nicht enthalten
 

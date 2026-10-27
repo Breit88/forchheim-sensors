@@ -12,7 +12,13 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from homeassistant.util import dt as dt_util
 
 from .api import ForchheimApiClient, ForchheimApiError
-from .const import CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL, DOMAIN
+from .const import (
+    CONF_SCAN_INTERVAL,
+    CONF_STATIONS,
+    CONF_WASTE_LOCATION,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
+)
 from .models import CityData, TrafficSnapshot
 from .parser import ForchheimInvalidResponseError
 
@@ -45,19 +51,36 @@ class ForchheimDataUpdateCoordinator(DataUpdateCoordinator[CityData]):
         """Fetch current readings and cached public city data."""
         try:
             stations = await self.client.async_get_all_stations()
+            selected = self.config_entry.options.get(CONF_STATIONS)
+            station_uids = [
+                station.uid
+                for station in stations
+                if selected is None or station.uid in selected
+            ]
             now = dt_util.now()
+            waste_location = self.config_entry.options.get(CONF_WASTE_LOCATION)
+            waste_request = (
+                self.client.async_get_waste_events(waste_location)
+                if waste_location
+                else asyncio.sleep(0, result=())
+            )
             results = await asyncio.gather(
-                self.client.async_get_station_measurements(
-                    [station.uid for station in stations]
-                ),
+                self.client.async_get_station_measurements(station_uids)
+                if station_uids
+                else asyncio.sleep(0, result={}),
                 self.client.async_get_public_places(),
                 self.client.async_get_construction_sites(),
                 self.client.async_get_traffic(now.weekday() >= 5, now.hour),
+                waste_request,
                 return_exceptions=True,
             )
-            measurements_result, places_result, construction_result, traffic_result = (
-                results
-            )
+            (
+                measurements_result,
+                places_result,
+                construction_result,
+                traffic_result,
+                waste_result,
+            ) = results
             if isinstance(measurements_result, Exception):
                 raise measurements_result
 
@@ -85,6 +108,11 @@ class ForchheimDataUpdateCoordinator(DataUpdateCoordinator[CityData]):
                 )
             else:
                 traffic = traffic_result
+            if isinstance(waste_result, Exception):
+                _LOGGER.warning("Unable to update waste calendar: %s", waste_result)
+                waste_events = previous.waste_events if previous else ()
+            else:
+                waste_events = waste_result
             places = [place for place in places if "Ladesäule" not in place.category]
             return CityData(
                 stations=tuple(stations),
@@ -94,6 +122,7 @@ class ForchheimDataUpdateCoordinator(DataUpdateCoordinator[CityData]):
                 transit_stops=tuple(transit),
                 construction_sites=tuple(construction),
                 traffic=traffic,
+                waste_events=waste_events,
             )
         except (ForchheimApiError, ForchheimInvalidResponseError) as err:
             raise UpdateFailed(

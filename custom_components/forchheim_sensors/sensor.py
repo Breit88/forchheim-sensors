@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import date
 from math import asin, cos, radians, sin, sqrt
 from typing import Any
 
@@ -27,9 +28,16 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import dt as dt_util
 
 from . import ForchheimConfigEntry
-from .const import DOMAIN, GRAFANA_DASHBOARDS, TENANT_UID
+from .const import (
+    CONF_STATIONS,
+    CONF_WASTE_LOCATION,
+    DOMAIN,
+    GRAFANA_DASHBOARDS,
+    TENANT_UID,
+)
 from .coordinator import ForchheimDataUpdateCoordinator
 from .models import CityData, Place, Station
 
@@ -179,7 +187,10 @@ async def async_setup_entry(
     coordinator = entry.runtime_data
     data = coordinator.data
     entities: list[SensorEntity] = []
+    selected = entry.options.get(CONF_STATIONS)
     for station in data.stations:
+        if selected is not None and station.uid not in selected:
+            continue
         entities.extend(
             ForchheimMeasurementSensor(coordinator, station, description)
             for description in SENSORS
@@ -188,7 +199,52 @@ async def async_setup_entry(
     entities.extend(
         _summary_entities(coordinator, hass.config.latitude, hass.config.longitude)
     )
+    if entry.options.get(CONF_WASTE_LOCATION):
+        entities.extend(
+            ForchheimWasteSensor(coordinator, kind, key)
+            for kind, key in (
+                ("Restmülltonne", "restmuell"),
+                ("Biotonne", "bio"),
+                ("Gelbe Tonne", "gelb"),
+                ("Papiertonne", "papier"),
+            )
+        )
     async_add_entities(entities)
+
+
+class ForchheimWasteSensor(
+    CoordinatorEntity[ForchheimDataUpdateCoordinator], SensorEntity
+):
+    """Date of the next collection for one standard waste type."""
+
+    _attr_device_class = SensorDeviceClass.DATE
+
+    def __init__(
+        self, coordinator: ForchheimDataUpdateCoordinator, kind: str, key: str
+    ) -> None:
+        super().__init__(coordinator)
+        self.kind = kind
+        self._attr_name = f"Nächste {kind}"
+        self._attr_unique_id = f"waste_{key}"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, "waste_collection")},
+            name="Abfalltermine Forchheim",
+            manufacturer="Landkreis Forchheim",
+            model="Abfallkalender",
+        )
+
+    @property
+    def native_value(self) -> date | None:
+        """Return the next date, including a pickup today."""
+        today = dt_util.now().date()
+        return next(
+            (
+                event.day
+                for event in self.coordinator.data.waste_events
+                if event.kind == self.kind and event.day >= today
+            ),
+            None,
+        )
 
 
 class ForchheimMeasurementSensor(

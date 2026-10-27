@@ -17,9 +17,9 @@ Nach Download und Neustart:
 
 ## Funktionen
 
-- Messwerte aller vier vollständigen Forchheimer Wetterstationen
-- Temperatur und Luftfeuchtigkeit von 16 weiteren Stadt-Sensoren
-- Luft- und Oberflächentemperatur des Fahrbahnsensors an der Lila Brücke
+- Messwerte der bei der Einrichtung ausgewählten Forchheimer Wetterstationen
+- Temperatur und Luftfeuchtigkeit ausgewählter weiterer Stadt-Sensoren
+- Luft- und Oberflächentemperatur des auswählbaren Fahrbahnsensors an der Lila Brücke
 - zeitabhängige Verkehrsprofile für Werktage und Wochenenden
 - Anzahl von Parkmöglichkeiten, Fahrradständern und Spielplätzen
 - aktive Baustellen einschließlich Zeitraum und Adresse
@@ -29,6 +29,8 @@ Nach Download und Neustart:
   Langzeitstatistiken in Diagrammen zur Verfügung stehen
 - schonende Abfrage der öffentlichen Dienste durch gemeinsame Messwertabrufe
   und abgestufte Zwischenspeicherung
+- optionaler Abfallkalender des Landkreises Forchheim mit Kalender-Entität und
+  den nächsten Terminen für Restmüll, Bio-, Gelbe und Papiertonne
 
 E-Ladestationen gehören seit Version 0.3.0 ausdrücklich nicht mehr zum
 Funktionsumfang. Beim Update werden alte Ladestations-Entitäten automatisch aus
@@ -45,19 +47,28 @@ Voraussetzung ist Home Assistant 2026.9.0 oder neuer.
 3. Starte Home Assistant neu.
 4. Öffne **Einstellungen → Geräte & Dienste → Integration hinzufügen** und
    suche nach **Digitales Forchheim**.
-5. Bestätige das Aktualisierungsintervall. Der Standardwert beträgt 300
-   Sekunden; erlaubt sind 60 bis 3600 Sekunden.
+5. Wähle die gewünschten Messstationen. Alle Sensoren einer Station werden
+   gemeinsam eingebunden. Anfangs sind alle Stationen vorausgewählt. Bestätige
+   das Aktualisierungsintervall (300 Sekunden, erlaubt sind 60 bis 3600) und
+   aktiviere bei Bedarf die Abfalltermine.
+6. Wenn du Abfalltermine aktivierst, schlägt die Integration anhand der
+   Heimposition eine Straße oder Ortschaft vor. Prüfe und bestätige den Eintrag.
+   Bei geteilten Straßen wähle den passenden Abfuhrabschnitt. Falls kein
+   Vorschlag möglich ist, suche den Eintrag manuell in der Liste.
 
 Es sind weder ein Benutzerkonto noch ein API-Schlüssel erforderlich. Pro
 Home-Assistant-Installation kann die Integration einmal eingerichtet werden.
+Stationen und Abfalltermine lassen sich später unter **Konfigurieren** ändern.
+Andere bestehende ICS-Kalender werden nicht automatisch verändert.
 
 ## Verlauf und Diagramme
 
-Home Assistant zeichnet die Zustände der erzeugten Sensoren über den Recorder
+Home Assistant zeichnet die Zustände der ausgewählten Sensoren über den Recorder
 auf. Numerische Sensoren liefern zusätzlich `state_class: measurement`, sodass
 Home Assistant daraus Langzeitstatistiken erstellt. Ein Dashboard wird nicht
-automatisch verändert; du kannst die gewünschten Entitäten mit den eingebauten
-Karten **Statistikdiagramm** und **Verlaufsdiagramm** darstellen.
+automatisch verändert. Für eine Anzeige, die sich der Stationsauswahl anpasst,
+steht eine [dynamische Karten-Vorlage](docs/history-and-dashboards.md#dynamische-karte-nach-station)
+bereit. Sie verwendet die optionale HACS-Karte Auto Entities.
 
 Beispiele und Hinweise zur sinnvollen Gruppierung nach Einheit stehen unter
 [Verlauf und Dashboards](docs/history-and-dashboards.md).
@@ -67,6 +78,7 @@ Beispiele und Hinweise zur sinnvollen Gruppierung nach Einheit stehen unter
 - [Entitäten und Attribute](docs/entities.md)
 - [Verlauf und Dashboards](docs/history-and-dashboards.md)
 - [Datenquellen und Aktualisierung](docs/data-sources.md)
+- [Abfalltermine](docs/waste.md)
 - [Update und Migration](docs/migration.md)
 - [Fehlerbehebung und Diagnose](docs/troubleshooting.md)
 - [Entwicklung und Tests](docs/development.md)
@@ -83,13 +95,20 @@ Beispiele und Hinweise zur sinnvollen Gruppierung nach Einheit stehen unter
 - Einzelne Stationen können zeitweise keine aktuellen Messwerte liefern. Die
   Integration behält dann den letzten erfolgreichen Datenstand, soweit dieser
   bereits verfügbar ist.
+- Die automatische Straßenvorschau kann bei ungenauer Heimposition oder
+  geteilten Straßen falsch sein. Der ausgewählte Abfuhrbereich muss beim
+  Einrichten geprüft werden.
 
 ## Datenschutz und Verantwortung
 
-Die Integration liest ausschließlich öffentliche Endpunkte. Zugangsdaten
-werden nicht benötigt. Die in Home Assistant hinterlegte Heimposition wird nur
-lokal verwendet, um Entfernungen zu berechnen, und nicht an die Datenquellen
-übermittelt.
+Die Integration liest öffentliche Endpunkte. Zugangsdaten werden nicht
+benötigt. Für den optionalen Straßenvorschlag sendet sie die Heimkoordinaten
+**einmal beim Einrichten oder erstmaligen Aktivieren der Abfalltermine** an den
+[Photon-Dienst von komoot](https://github.com/komoot/photon). Dieser Dienst
+liefert einen Adressvorschlag aus OpenStreetMap-Daten. Danach wird nur der
+bestätigte Forchheimer Abfuhrbereich gespeichert und dessen ICS-Kalender
+regelmäßig abgerufen. Ohne aktivierte Abfalltermine bleiben die Heimkoordinaten
+wie bisher lokal für Entfernungssensoren.
 
 Die Daten stammen von der Stadt Forchheim, Smart Data Services und bei
 Haltestellen vom VGN. Dieses Projekt ist kein offizielles Angebot dieser

@@ -9,6 +9,9 @@ CONF_STATION_NAME: Final = "station_name"
 CONF_LATITUDE: Final = "latitude"
 CONF_LONGITUDE: Final = "longitude"
 CONF_SCAN_INTERVAL: Final = "scan_interval"
+CONF_STATIONS: Final = "stations"
+CONF_WASTE_ENABLED: Final = "waste_enabled"
+CONF_WASTE_LOCATION: Final = "waste_location"
 CITY_UNIQUE_ID: Final = "forchheim_citywide"
 
 DEFAULT_SCAN_INTERVAL: Final = 300
@@ -46,5 +49,8 @@ TRANSIT_URLS: Final = {
     "oepnv_vgn_haltestelleS.json",
 }
 TRAFFIC_BASE_URL: Final = "https://dz.forchheim.de/datasource-data/fcd_hex"
+WASTE_BASE_URL: Final = "https://www.abfalltermine-forchheim.de"
+WASTE_LOCATIONS_URL: Final = f"{WASTE_BASE_URL}/Forchheim/Landkreis/Forchheim"
+PHOTON_REVERSE_URL: Final = "https://photon.komoot.io/reverse"
 
 PLATFORMS: Final = ["sensor"]

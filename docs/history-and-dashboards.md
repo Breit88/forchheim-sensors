@@ -14,7 +14,48 @@ Damit stehen zwei Arten von Diagrammen zur Verfügung:
 - **Statistikdiagramm** zeigt verdichtete Langzeitstatistiken wie Mittelwert,
   Minimum und Maximum.
 
-Die Integration ändert kein vorhandenes Dashboard automatisch.
+Die Integration ändert kein vorhandenes Dashboard automatisch. Ausgewählte
+Messstationen erscheinen als eigene Geräte mit allen ihren Messwerten. Eine
+abgewählte Station liefert keine Messwerte mehr. Für ein Dashboard, das sich
+der Stationsauswahl automatisch anpasst, kann eine dynamische Karte verwendet
+werden.
+
+## Dynamische Karte nach Station
+
+Die folgende Karte benötigt die zusätzliche HACS-Karte
+[Auto Entities](https://github.com/thomasloven/lovelace-auto-entities). Füge sie
+einmalig als manuelle Karte in den gewünschten Dashboard-Bereich ein. Sie
+zeigt danach nur die aktiven Messsensoren dieser Integration und bündelt sie
+mit Abschnittsüberschriften nach Station. Die Abfall- und stadtweiten
+Zusammenfassungssensoren bleiben außerhalb dieser Karte.
+
+```yaml
+type: custom:auto-entities
+show_empty: false
+card:
+  type: entities
+  title: Stadt-Sensoren
+filter:
+  template: |
+    {% set ns = namespace(last='') %}
+    [
+    {% for sensor in states.sensor
+       | selectattr('entity_id', 'in', integration_entities('forchheim_sensors'))
+       | selectattr('attributes.station_type', 'defined')
+       | sort(attribute='attributes.station') %}
+      {% if sensor.state not in ['unknown', 'unavailable'] %}
+        {% if sensor.attributes.station != ns.last %}
+          {"type": "section", "label": {{ sensor.attributes.station | to_json }}},
+          {% set ns.last = sensor.attributes.station %}
+        {% endif %}
+        {"entity": {{ sensor.entity_id | to_json }}},
+      {% endif %}
+    {% endfor %}
+    ]
+```
+
+Feste Karten mit einzeln eingetragenen Entitäts-IDs aktualisieren ihre Liste
+nicht automatisch. Sie müssen einmalig ersetzt oder manuell gepflegt werden.
 
 ## Karte über die Oberfläche anlegen
 
