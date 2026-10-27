@@ -6,20 +6,35 @@
         "title": "Set up Digital Forchheim",
         "description": "Automatically adds all public weather, traffic, and city data.",
         "data": {
-          "scan_interval": "Update interval"
+          "scan_interval": "Update interval",
+          "stations": "Measurement stations",
+          "waste_enabled": "Include waste collection dates"
         },
         "data_description": {
-          "scan_interval": "Seconds between live updates"
+          "scan_interval": "Seconds between live updates",
+          "stations": "Choose stations. All measurements from each station are included together.",
+          "waste_enabled": "Uses the Home coordinates once to suggest a collection area. You confirm the choice and can change it later."
+        }
+      },
+      "waste": {
+        "title": "Choose collection area",
+        "description": "Choose your street or locality. Some streets are split into collection sections.",
+        "data": {
+          "waste_location": "Street or locality"
         }
       }
     },
     "error": {
       "cannot_connect": "The public Forchheim sensor service is currently unavailable.",
       "invalid_response": "The data source returned an unexpected response.",
-      "invalid_station": "The selected station was not found."
+      "invalid_station": "The selected station was not found.",
+      "invalid_location": "This collection area was not found.",
+      "waste_unavailable": "The Forchheim waste calendar is currently unavailable."
     },
     "abort": {
-      "already_configured": "Digital Forchheim is already configured."
+      "already_configured": "Digital Forchheim is already configured.",
+      "cannot_connect": "The Forchheim stations are currently unavailable.",
+      "waste_unavailable": "The Forchheim waste calendar is currently unavailable."
     }
   },
   "options": {
@@ -27,12 +42,30 @@
       "init": {
         "title": "Configure Digital Forchheim",
         "data": {
-          "scan_interval": "Update interval"
+          "scan_interval": "Update interval",
+          "stations": "Measurement stations",
+          "waste_enabled": "Include waste collection dates"
         },
         "data_description": {
-          "scan_interval": "Seconds between requests"
+          "scan_interval": "Seconds between requests",
+          "stations": "Only selected stations provide measurement entities."
+        }
+      },
+      "waste": {
+        "title": "Choose collection area",
+        "data": {
+          "waste_location": "Street or locality"
         }
       }
+    },
+    "error": {
+      "invalid_station": "The selected station was not found.",
+      "invalid_location": "This collection area was not found.",
+      "waste_unavailable": "The Forchheim waste calendar is currently unavailable."
+    },
+    "abort": {
+      "cannot_connect": "The Forchheim stations are currently unavailable.",
+      "waste_unavailable": "The Forchheim waste calendar is currently unavailable."
     }
   },
   "entity": {

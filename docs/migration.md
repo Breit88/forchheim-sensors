@@ -24,6 +24,20 @@ Start nach dem Update entfernt die Migration die früheren Ladestations-
 Entitäten und -Geräte aus der Entity- und Device-Registry. Wetter-, Klima-,
 Fahrbahn-, Verkehrs- und übrige Stadtsensoren bleiben bestehen.
 
+## Stationsauswahl und Abfalltermine
+
+Beim Upgrade bleiben alle bisher vorhandenen Messstationen zunächst
+ausgewählt. Bestehende Entitäts-IDs werden beibehalten. Eine abgewählte
+Station wird in der Entity-Registry durch die Integration deaktiviert und
+bei Wiederwahl reaktiviert; eigene Deaktivierungen durch den Nutzer bleiben
+erhalten. Die Auswahl kann unter **Konfigurieren** geändert werden.
+
+Der Abfallkalender ist optional und beim Upgrade ausgeschaltet. Vorhandene
+ICS-Kalender und Dashboard-Karten werden nicht automatisch geändert. Wer die
+neuen Abfallentitäten nutzen möchte, kann die bisherige Einbindung danach
+selbst ablösen. Für eine automatisch angepasste Stationsanzeige gibt es eine
+[Dashboard-Vorlage](history-and-dashboards.md#dynamische-karte-nach-station).
+
 ## Vor einem Downgrade
 
 Ein Downgrade wird nicht empfohlen, weil ältere Versionen die aktuelle

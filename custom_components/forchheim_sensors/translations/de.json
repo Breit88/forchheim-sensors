@@ -6,20 +6,35 @@
         "title": "Digitales Forchheim einrichten",
         "description": "Richtet alle öffentlichen Wetter-, Verkehrs- und Stadtdaten automatisch ein.",
         "data": {
-          "scan_interval": "Aktualisierungsintervall"
+          "scan_interval": "Aktualisierungsintervall",
+          "stations": "Messstationen",
+          "waste_enabled": "Abfalltermine einbinden"
         },
         "data_description": {
-          "scan_interval": "Zeit zwischen Live-Abfragen in Sekunden"
+          "scan_interval": "Zeit zwischen Live-Abfragen in Sekunden",
+          "stations": "Wähle die Stationen aus. Alle Messwerte einer Station werden gemeinsam eingebunden.",
+          "waste_enabled": "Nutzt die Heimkoordinaten einmalig für einen Straßenvorschlag. Die Auswahl wird bestätigt und kann geändert werden."
+        }
+      },
+      "waste": {
+        "title": "Abfallgebiet auswählen",
+        "description": "Wähle die passende Straße oder Ortschaft. Manche Straßen sind nach Abfuhrabschnitt aufgeteilt.",
+        "data": {
+          "waste_location": "Straße oder Ortschaft"
         }
       }
     },
     "error": {
       "cannot_connect": "Die öffentlichen Forchheimer Sensordaten sind momentan nicht erreichbar.",
       "invalid_response": "Die Datenquelle hat ein unerwartetes Format geliefert.",
-      "invalid_station": "Die ausgewählte Station wurde nicht gefunden."
+      "invalid_station": "Die ausgewählte Station wurde nicht gefunden.",
+      "invalid_location": "Dieses Abfallgebiet wurde nicht gefunden.",
+      "waste_unavailable": "Der Forchheimer Abfallkalender ist momentan nicht erreichbar."
     },
     "abort": {
-      "already_configured": "Digitales Forchheim ist bereits eingerichtet."
+      "already_configured": "Digitales Forchheim ist bereits eingerichtet.",
+      "cannot_connect": "Die Forchheimer Stationen sind momentan nicht erreichbar.",
+      "waste_unavailable": "Der Forchheimer Abfallkalender ist momentan nicht erreichbar."
     }
   },
   "options": {
@@ -27,12 +42,30 @@
       "init": {
         "title": "Digitales Forchheim konfigurieren",
         "data": {
-          "scan_interval": "Aktualisierungsintervall"
+          "scan_interval": "Aktualisierungsintervall",
+          "stations": "Messstationen",
+          "waste_enabled": "Abfalltermine einbinden"
         },
         "data_description": {
-          "scan_interval": "Zeit zwischen zwei Abfragen in Sekunden"
+          "scan_interval": "Zeit zwischen zwei Abfragen in Sekunden",
+          "stations": "Nur die ausgewählten Stationen liefern Messwert-Entitäten."
+        }
+      },
+      "waste": {
+        "title": "Abfallgebiet auswählen",
+        "data": {
+          "waste_location": "Straße oder Ortschaft"
         }
       }
+    },
+    "error": {
+      "invalid_station": "Die ausgewählte Station wurde nicht gefunden.",
+      "invalid_location": "Dieses Abfallgebiet wurde nicht gefunden.",
+      "waste_unavailable": "Der Forchheimer Abfallkalender ist momentan nicht erreichbar."
+    },
+    "abort": {
+      "cannot_connect": "Die Forchheimer Stationen sind momentan nicht erreichbar.",
+      "waste_unavailable": "Der Forchheimer Abfallkalender ist momentan nicht erreichbar."
     }
   },
   "entity": {

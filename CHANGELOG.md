@@ -2,6 +2,16 @@
 
 Alle veröffentlichten Änderungen dieses Projekts werden hier zusammengefasst.
 
+## 0.4.0 – Unveröffentlicht
+
+- Messstationen im Einrichtungsdialog und später in den Optionen auswählbar;
+  alle Sensoren einer Station bleiben zusammen
+- bestehende Installationen behalten ihre Stationsauswahl und Entitäts-IDs
+- dynamische Dashboard-Karte für die Anzeige ausgewählter Stationen dokumentiert
+- optionalen Abfallkalender mit Straßenvorschlag, manueller Auswahl,
+  Kalender-Entität und vier Termin-Sensoren ergänzt
+- gewählten Abfuhrbereich in den Integrationsoptionen änderbar gemacht
+
 ## 0.3.0 – 2026-10-01
 
 - E-Ladestationen vollständig aus Datenabruf und Entitäten entfernt

@@ -6,6 +6,7 @@ import asyncio
 import re
 import time
 from typing import Any
+from urllib.parse import quote
 
 from aiohttp import ClientError, ClientSession
 
@@ -14,19 +15,23 @@ from .const import (
     GRAFANA_QUERY_URL,
     LOCATIONS_URL,
     ORTSINFO_URL,
+    PHOTON_REVERSE_URL,
     PLAYGROUNDS_URL,
     STATION_CATEGORIES,
     TENANT_UID,
     TRAFFIC_BASE_URL,
     TRANSIT_URLS,
+    WASTE_BASE_URL,
+    WASTE_LOCATIONS_URL,
 )
-from .models import Measurement, Place, Station, TrafficSnapshot
+from .models import Measurement, Place, Station, TrafficSnapshot, WasteEvent
 from .parser import (
     parse_places,
     parse_station_measurements,
     parse_stations,
     parse_traffic,
 )
+from .waste import WasteLocation, parse_waste_ics, parse_waste_locations
 
 _STATION_UID_PATTERN = re.compile(r"^[0-9]+-[0-9]+$")
 
@@ -156,6 +161,54 @@ class ForchheimApiClient:
         self._set_cached(period, result)
         return result
 
+    async def async_get_waste_locations(self) -> list[WasteLocation]:
+        """Return the district's current street and locality choices."""
+        cached = self._get_cached("waste_locations", 86_400)
+        if cached is not None:
+            return cached
+        html = await self._async_request_text(WASTE_LOCATIONS_URL)
+        locations = parse_waste_locations(html)
+        self._set_cached("waste_locations", locations)
+        return locations
+
+    async def async_reverse_geocode(
+        self, latitude: float, longitude: float
+    ) -> dict[str, str]:
+        """Look up the home street once during user-initiated setup."""
+        payload = await self._async_request_json(
+            "GET",
+            PHOTON_REVERSE_URL,
+            params={"lat": latitude, "lon": longitude, "lang": "de", "limit": 1},
+            headers={
+                "User-Agent": (
+                    "forchheim-sensors (github.com/Breit88/forchheim-sensors)"
+                )
+            },
+        )
+        features = payload.get("features", [])
+        if not isinstance(features, list) or not features:
+            return {}
+        if not isinstance(features[0], dict):
+            return {}
+        properties = features[0].get("properties", {})
+        return properties if isinstance(properties, dict) else {}
+
+    async def async_get_waste_events(
+        self, location_path: str
+    ) -> tuple[WasteEvent, ...]:
+        """Fetch the selected official ICS feed at most once in six hours."""
+        if not location_path.startswith("/Forchheim/Landkreis/") or "/" in (
+            location_path.removeprefix("/Forchheim/Landkreis/")
+        ):
+            raise ForchheimApiError("Invalid waste location")
+        cached = self._get_cached(f"waste:{location_path}", 21_600)
+        if cached is not None:
+            return cached
+        url = f"{WASTE_BASE_URL}{quote(location_path, safe='/()-')}/ics"
+        events = parse_waste_ics(await self._async_request_text(url))
+        self._set_cached(f"waste:{location_path}", events)
+        return events
+
     async def _async_grafana_query(self, query: str) -> dict[str, Any]:
         """Execute one public Grafana KQL query."""
         now_ms = int(time.time() * 1000)
@@ -206,3 +259,12 @@ class ForchheimApiClient:
         if not isinstance(payload, dict):
             raise ForchheimConnectionError("Endpoint did not return a JSON object")
         return payload
+
+    async def _async_request_text(self, url: str) -> str:
+        """Request a public HTML or ICS document."""
+        try:
+            async with self._session.get(url, timeout=30) as response:
+                response.raise_for_status()
+                return await response.text()
+        except (ClientError, TimeoutError, UnicodeError) as err:
+            raise ForchheimConnectionError(str(err)) from err

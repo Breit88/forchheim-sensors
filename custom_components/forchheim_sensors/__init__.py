@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
@@ -10,10 +12,11 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import ForchheimApiClient
-from .const import CITY_UNIQUE_ID, DOMAIN
+from .const import CITY_UNIQUE_ID, CONF_STATIONS, DOMAIN
 from .coordinator import ForchheimDataUpdateCoordinator
 
-PLATFORMS = [Platform.SENSOR]
+PLATFORMS = [Platform.SENSOR, Platform.CALENDAR]
+_STATION_ENTITY_ID = re.compile(r"^(\d+-\d+)_")
 
 type ForchheimConfigEntry = ConfigEntry[ForchheimDataUpdateCoordinator]
 
@@ -53,6 +56,8 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ForchheimConfigEntry) 
                 device_registry.async_remove_device(device.id)
 
         hass.config_entries.async_update_entry(entry, version=3)
+    if entry.version == 3:
+        hass.config_entries.async_update_entry(entry, version=4)
     return True
 
 
@@ -61,6 +66,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ForchheimConfigEntry) ->
     client = ForchheimApiClient(async_get_clientsession(hass))
     coordinator = ForchheimDataUpdateCoordinator(hass, entry, client)
     await coordinator.async_config_entry_first_refresh()
+    if CONF_STATIONS not in entry.options:
+        hass.config_entries.async_update_entry(
+            entry,
+            options={
+                **entry.options,
+                CONF_STATIONS: [station.uid for station in coordinator.data.stations],
+            },
+        )
+    _sync_station_entities(hass, entry, set(entry.options[CONF_STATIONS]))
     entry.runtime_data = coordinator
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(_async_reload_entry))
@@ -75,3 +89,22 @@ async def async_unload_entry(hass: HomeAssistant, entry: ForchheimConfigEntry) -
 async def _async_reload_entry(hass: HomeAssistant, entry: ForchheimConfigEntry) -> None:
     """Reload after an options change."""
     await hass.config_entries.async_reload(entry.entry_id)
+
+
+def _sync_station_entities(
+    hass: HomeAssistant, entry: ForchheimConfigEntry, selected: set[str]
+) -> None:
+    """Hide deselected stations while keeping entity IDs for later reactivation."""
+    registry = er.async_get(hass)
+    for entity in er.async_entries_for_config_entry(registry, entry.entry_id):
+        match = _STATION_ENTITY_ID.match(entity.unique_id)
+        if match is None:
+            continue
+        if match.group(1) in selected:
+            if entity.disabled_by is er.RegistryEntryDisabler.INTEGRATION:
+                registry.async_update_entity(entity.entity_id, disabled_by=None)
+        elif entity.disabled_by is None:
+            registry.async_update_entity(
+                entity.entity_id,
+                disabled_by=er.RegistryEntryDisabler.INTEGRATION,
+            )

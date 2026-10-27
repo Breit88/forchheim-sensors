@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 
 
@@ -53,6 +53,14 @@ class TrafficSnapshot:
 
 
 @dataclass(frozen=True, slots=True)
+class WasteEvent:
+    """One all-day collection event."""
+
+    day: date
+    kind: str
+
+
+@dataclass(frozen=True, slots=True)
 class CityData:
     """All public Forchheim data used by the integration."""
 
@@ -63,3 +71,4 @@ class CityData:
     transit_stops: tuple[Place, ...]
     construction_sites: tuple[Place, ...]
     traffic: TrafficSnapshot
+    waste_events: tuple[WasteEvent, ...] = ()
