@@ -2,7 +2,7 @@
 
 Alle veröffentlichten Änderungen dieses Projekts werden hier zusammengefasst.
 
-## 0.4.0 – Unveröffentlicht
+## 0.4.0 – 2026-10-27
 
 - Messstationen im Einrichtungsdialog und später in den Optionen auswählbar;
   alle Sensoren einer Station bleiben zusammen
