@@ -167,6 +167,13 @@ class ForchheimSensorsConfigFlow(ConfigFlow, domain=DOMAIN):
                 for location in self._waste_locations
                 if location not in suggestions
             ]
+            if len(suggestions) == 1 and user_input is None:
+                try:
+                    await client.async_get_waste_events(suggestions[0].path)
+                except (ForchheimApiError, ForchheimInvalidResponseError):
+                    pass
+                else:
+                    return self._create_entry(suggestions[0].path)
         errors: dict[str, str] = {}
         if user_input is not None:
             location = next(
@@ -185,19 +192,23 @@ class ForchheimSensorsConfigFlow(ConfigFlow, domain=DOMAIN):
                 except (ForchheimApiError, ForchheimInvalidResponseError):
                     errors["base"] = "waste_unavailable"
                 else:
-                    return self.async_create_entry(
-                        title="Digitales Forchheim",
-                        data={},
-                        options={
-                            CONF_SCAN_INTERVAL: self._setup_input[CONF_SCAN_INTERVAL],
-                            CONF_STATIONS: self._setup_input[CONF_STATIONS],
-                            CONF_WASTE_LOCATION: location.path,
-                        },
-                    )
+                    return self._create_entry(location.path)
         return self.async_show_form(
             step_id="waste",
             data_schema=_waste_schema(self._waste_locations, self._waste_default),
             errors=errors,
+        )
+
+    def _create_entry(self, path: str) -> ConfigFlowResult:
+        """Create an entry with the verified collection area."""
+        return self.async_create_entry(
+            title="Digitales Forchheim",
+            data={},
+            options={
+                CONF_SCAN_INTERVAL: self._setup_input[CONF_SCAN_INTERVAL],
+                CONF_STATIONS: self._setup_input[CONF_STATIONS],
+                CONF_WASTE_LOCATION: path,
+            },
         )
 
     @staticmethod
@@ -286,6 +297,18 @@ class ForchheimOptionsFlow(OptionsFlow):
                     for location in self._waste_locations
                     if location not in suggestions
                 ]
+                if len(suggestions) == 1 and user_input is None:
+                    try:
+                        await client.async_get_waste_events(suggestions[0].path)
+                    except (ForchheimApiError, ForchheimInvalidResponseError):
+                        pass
+                    else:
+                        return self.async_create_entry(
+                            data={
+                                **self._new_options,
+                                CONF_WASTE_LOCATION: suggestions[0].path,
+                            }
+                        )
         errors: dict[str, str] = {}
         if user_input is not None:
             path = user_input[CONF_WASTE_LOCATION]

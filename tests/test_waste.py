@@ -50,6 +50,12 @@ def test_match_single_locality_without_street() -> None:
         WasteLocation("/Forchheim/Landkreis/Dormitz - Dormitz", "Dormitz - Dormitz")
     ]
     assert suggest_waste_locations(locations, {"city": "Dormitz"}) == locations
+    assert (
+        suggest_waste_locations(
+            locations, {"city": "Dormitz", "street": "Unbekannte Straße"}
+        )
+        == []
+    )
 
 
 def test_parse_ics_all_day_events_and_ignore_cancelled() -> None:

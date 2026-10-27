@@ -2,6 +2,15 @@
 
 Alle veröffentlichten Änderungen dieses Projekts werden hier zusammengefasst.
 
+## 0.4.1 – 2026-10-27
+
+- eindeutige Straßentreffer bei der Abfallkalender-Einrichtung automatisch
+  zugeordnet und den zugehörigen ICS-Kalender vorher geprüft
+- bei unklarer Straße weiterhin eine manuelle Auswahl angeboten
+- Aktivierung in bestehenden Installationen und Kalenderanzeige dokumentiert
+- Datumssensor für die Singletonne ergänzt und die Gelbe Tonne als
+  Kunststoffsammlung bezeichnet; bestehende Entitäts-ID bleibt erhalten
+
 ## 0.4.0 – 2026-10-27
 
 - Messstationen im Einrichtungsdialog und später in den Optionen auswählbar;

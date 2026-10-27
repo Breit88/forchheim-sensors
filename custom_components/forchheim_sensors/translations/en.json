@@ -13,7 +13,7 @@
         "data_description": {
           "scan_interval": "Seconds between live updates",
           "stations": "Choose stations. All measurements from each station are included together.",
-          "waste_enabled": "Uses the Home coordinates once to suggest a collection area. You confirm the choice and can change it later."
+          "waste_enabled": "Uses the Home coordinates once to find the collection area. An unambiguous match is selected automatically; otherwise you choose manually."
         }
       },
       "waste": {
@@ -48,7 +48,8 @@
         },
         "data_description": {
           "scan_interval": "Seconds between requests",
-          "stations": "Only selected stations provide measurement entities."
+          "stations": "Only selected stations provide measurement entities.",
+          "waste_enabled": "Uses the Home coordinates once to find the matching waste calendar. Multiple matches require manual selection."
         }
       },
       "waste": {
