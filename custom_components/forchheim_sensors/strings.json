@@ -13,7 +13,7 @@
         "data_description": {
           "scan_interval": "Zeit zwischen Live-Abfragen in Sekunden",
           "stations": "Wähle die Stationen aus. Alle Messwerte einer Station werden gemeinsam eingebunden.",
-          "waste_enabled": "Nutzt die Heimkoordinaten einmalig für einen Straßenvorschlag. Die Auswahl wird bestätigt und kann geändert werden."
+          "waste_enabled": "Nutzt die Heimkoordinaten einmalig für die Straßensuche. Ein eindeutiger Treffer wird automatisch übernommen; sonst folgt eine manuelle Auswahl."
         }
       },
       "waste": {
@@ -48,7 +48,8 @@
         },
         "data_description": {
           "scan_interval": "Zeit zwischen zwei Abfragen in Sekunden",
-          "stations": "Nur die ausgewählten Stationen liefern Messwert-Entitäten."
+          "stations": "Nur die ausgewählten Stationen liefern Messwert-Entitäten.",
+          "waste_enabled": "Ermittelt anhand der Heimkoordinaten einmalig den passenden Abfallkalender. Bei mehreren Treffern folgt eine Auswahl."
         }
       },
       "waste": {

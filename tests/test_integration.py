@@ -109,10 +109,10 @@ async def test_config_flow_and_duplicate_protection(hass: HomeAssistant) -> None
         assert duplicate["reason"] == "already_configured"
 
 
-async def test_waste_setup_suggests_but_requires_confirmation(
+async def test_waste_setup_uses_unambiguous_street(
     hass: HomeAssistant,
 ) -> None:
-    """Each HA instance chooses its own collection area in the setup flow."""
+    """An exact street match creates the calendar option automatically."""
     with (
         patch(
             "custom_components.forchheim_sensors.config_flow."
@@ -143,6 +143,53 @@ async def test_waste_setup_suggests_but_requires_confirmation(
         form = await hass.config_entries.flow.async_init(
             DOMAIN, context={"source": "user"}
         )
+        result = await hass.config_entries.flow.async_configure(
+            form["flow_id"],
+            {CONF_SCAN_INTERVAL: 300, CONF_WASTE_ENABLED: True},
+        )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["options"][CONF_WASTE_LOCATION] == WASTE_PATH
+    assert result["options"][CONF_STATIONS] == [STATION.uid]
+
+
+async def test_waste_setup_requires_choice_for_divided_street(
+    hass: HomeAssistant,
+) -> None:
+    """A street with multiple collection routes is not selected automatically."""
+    other_path = "/Forchheim/Landkreis/Forchheim - Ringstraße (Süd)"
+    with (
+        patch(
+            "custom_components.forchheim_sensors.config_flow."
+            "ForchheimApiClient.async_get_all_stations",
+            return_value=[STATION],
+        ),
+        patch(
+            "custom_components.forchheim_sensors.config_flow."
+            "ForchheimApiClient.async_get_station_measurements",
+            return_value={STATION.uid: MEASUREMENTS},
+        ),
+        patch(
+            "custom_components.forchheim_sensors.config_flow."
+            "ForchheimApiClient.async_get_waste_locations",
+            return_value=[
+                WasteLocation(WASTE_PATH, "Forchheim - Ringstraße"),
+                WasteLocation(other_path, "Forchheim - Ringstraße (Süd)"),
+            ],
+        ),
+        patch(
+            "custom_components.forchheim_sensors.config_flow."
+            "ForchheimApiClient.async_reverse_geocode",
+            return_value={"city": "Forchheim", "street": "Ringstraße"},
+        ),
+        patch(
+            "custom_components.forchheim_sensors.config_flow."
+            "ForchheimApiClient.async_get_waste_events",
+            return_value=(WasteEvent(date(2026, 10, 28), "Biotonne"),),
+        ),
+    ):
+        form = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": "user"}
+        )
         waste_form = await hass.config_entries.flow.async_configure(
             form["flow_id"],
             {CONF_SCAN_INTERVAL: 300, CONF_WASTE_ENABLED: True},
@@ -150,11 +197,10 @@ async def test_waste_setup_suggests_but_requires_confirmation(
         assert waste_form["type"] is FlowResultType.FORM
         assert waste_form["step_id"] == "waste"
         result = await hass.config_entries.flow.async_configure(
-            form["flow_id"], {CONF_WASTE_LOCATION: WASTE_PATH}
+            form["flow_id"], {CONF_WASTE_LOCATION: other_path}
         )
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert result["options"][CONF_WASTE_LOCATION] == WASTE_PATH
-    assert result["options"][CONF_STATIONS] == [STATION.uid]
+    assert result["options"][CONF_WASTE_LOCATION] == other_path
 
 
 async def test_options_allow_deselecting_all_stations(hass: HomeAssistant) -> None:
@@ -184,6 +230,104 @@ async def test_options_allow_deselecting_all_stations(hass: HomeAssistant) -> No
         )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["data"][CONF_STATIONS] == []
+
+
+async def test_options_enable_waste_from_home_street(hass: HomeAssistant) -> None:
+    """Existing installs can enable the calendar with one options submission."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        version=4,
+        unique_id=CITY_UNIQUE_ID,
+        data={},
+        options={CONF_SCAN_INTERVAL: 300, CONF_STATIONS: [STATION.uid]},
+    )
+    entry.add_to_hass(hass)
+    with (
+        patch(
+            "custom_components.forchheim_sensors.config_flow."
+            "ForchheimApiClient.async_get_all_stations",
+            return_value=[STATION],
+        ),
+        patch(
+            "custom_components.forchheim_sensors.config_flow."
+            "ForchheimApiClient.async_get_waste_locations",
+            return_value=[WasteLocation(WASTE_PATH, "Forchheim - Ringstraße")],
+        ),
+        patch(
+            "custom_components.forchheim_sensors.config_flow."
+            "ForchheimApiClient.async_reverse_geocode",
+            return_value={"city": "Forchheim", "street": "Ringstraße"},
+        ),
+        patch(
+            "custom_components.forchheim_sensors.config_flow."
+            "ForchheimApiClient.async_get_waste_events",
+            return_value=(WasteEvent(date(2026, 10, 28), "Biotonne"),),
+        ),
+    ):
+        form = await hass.config_entries.options.async_init(entry.entry_id)
+        result = await hass.config_entries.options.async_configure(
+            form["flow_id"],
+            {
+                CONF_SCAN_INTERVAL: 300,
+                CONF_STATIONS: [STATION.uid],
+                CONF_WASTE_ENABLED: True,
+            },
+        )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["data"][CONF_WASTE_LOCATION] == WASTE_PATH
+
+
+async def test_options_allow_manual_waste_area_change(hass: HomeAssistant) -> None:
+    """An automatically selected route can be replaced manually later."""
+    other_path = "/Forchheim/Landkreis/Forchheim - Adalbert-Stifter-Straße"
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        version=4,
+        unique_id=CITY_UNIQUE_ID,
+        data={},
+        options={
+            CONF_SCAN_INTERVAL: 300,
+            CONF_STATIONS: [STATION.uid],
+            CONF_WASTE_LOCATION: WASTE_PATH,
+        },
+    )
+    entry.add_to_hass(hass)
+    with (
+        patch(
+            "custom_components.forchheim_sensors.config_flow."
+            "ForchheimApiClient.async_get_all_stations",
+            return_value=[STATION],
+        ),
+        patch(
+            "custom_components.forchheim_sensors.config_flow."
+            "ForchheimApiClient.async_get_waste_locations",
+            return_value=[
+                WasteLocation(WASTE_PATH, "Forchheim - Ringstraße"),
+                WasteLocation(other_path, "Forchheim - Adalbert-Stifter-Straße"),
+            ],
+        ),
+        patch(
+            "custom_components.forchheim_sensors.config_flow."
+            "ForchheimApiClient.async_get_waste_events",
+            return_value=(WasteEvent(date(2026, 10, 28), "Biotonne"),),
+        ),
+    ):
+        form = await hass.config_entries.options.async_init(entry.entry_id)
+        waste_form = await hass.config_entries.options.async_configure(
+            form["flow_id"],
+            {
+                CONF_SCAN_INTERVAL: 300,
+                CONF_STATIONS: [STATION.uid],
+                CONF_WASTE_ENABLED: True,
+            },
+        )
+        assert waste_form["type"] is FlowResultType.FORM
+        assert waste_form["step_id"] == "waste"
+        result = await hass.config_entries.options.async_configure(
+            form["flow_id"], {CONF_WASTE_LOCATION: other_path}
+        )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["data"][CONF_WASTE_LOCATION] == other_path
 
 
 async def test_entry_setup_creates_citywide_sensors(hass: HomeAssistant) -> None:
@@ -264,6 +408,13 @@ async def test_entry_setup_creates_citywide_sensors(hass: HomeAssistant) -> None
 async def test_selected_station_and_waste_entities(hass: HomeAssistant) -> None:
     """Only chosen stations are queried; waste entities use the chosen area."""
     next_day = date.today() + timedelta(days=1)
+    waste_kinds = (
+        ("Restmülltonne", "waste_restmuell"),
+        ("Singletonne (Restmüll)", "waste_single"),
+        ("Biotonne", "waste_bio"),
+        ("Papiertonne", "waste_papier"),
+        ("Gelbe Tonne", "waste_gelb"),
+    )
     entry = MockConfigEntry(
         domain=DOMAIN,
         version=4,
@@ -306,7 +457,7 @@ async def test_selected_station_and_waste_entities(hass: HomeAssistant) -> None:
         patch(
             "custom_components.forchheim_sensors.api."
             "ForchheimApiClient.async_get_waste_events",
-            return_value=(WasteEvent(next_day, "Biotonne"),),
+            return_value=tuple(WasteEvent(next_day, kind) for kind, _ in waste_kinds),
         ) as waste_request,
     ):
         assert await hass.config_entries.async_setup(entry.entry_id)
@@ -318,8 +469,9 @@ async def test_selected_station_and_waste_entities(hass: HomeAssistant) -> None:
         entity.unique_id.startswith(OTHER_STATION.uid) for entity in entities
     )
     assert sum(entity.domain == "calendar" for entity in entities) == 1
-    bio = next(entity for entity in entities if entity.unique_id == "waste_bio")
-    assert hass.states.get(bio.entity_id).state == next_day.isoformat()
+    for _, unique_id in waste_kinds:
+        sensor = next(entity for entity in entities if entity.unique_id == unique_id)
+        assert hass.states.get(sensor.entity_id).state == next_day.isoformat()
     assert await hass.config_entries.async_unload(entry.entry_id)
 
 

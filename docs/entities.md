@@ -70,9 +70,9 @@ führt außerdem Details zu bis zu 20 aktiven Baustellen als Attribute.
 ## Abfalltermine
 
 Wenn Abfalltermine aktiviert wurden, gibt es ein Gerät **Abfalltermine
-Forchheim** mit einem Kalender und vier Datumssensoren für die jeweils nächste
-Restmüll-, Bio-, Gelbe und Papiertonne. Weitere Terminarten bleiben im Kalender
-sichtbar. Der ausgewählte Abfuhrbereich kann unter **Konfigurieren** geändert
+Forchheim** mit einem Kalender und fünf Datumssensoren für die jeweils nächste
+Singletonne, Restmülltonne, Biotonne, Papiertonne und Gelbe Tonne
+(Kunststoffsammlung). Der ausgewählte Abfuhrbereich kann unter **Konfigurieren** geändert
 werden. Siehe [Abfalltermine](waste.md).
 
 ## Bewusst nicht enthalten

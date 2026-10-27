@@ -201,12 +201,13 @@ async def async_setup_entry(
     )
     if entry.options.get(CONF_WASTE_LOCATION):
         entities.extend(
-            ForchheimWasteSensor(coordinator, kind, key)
-            for kind, key in (
-                ("Restmülltonne", "restmuell"),
-                ("Biotonne", "bio"),
-                ("Gelbe Tonne", "gelb"),
-                ("Papiertonne", "papier"),
+            ForchheimWasteSensor(coordinator, label, source_kind, key)
+            for label, source_kind, key in (
+                ("Restmülltonne", "Restmülltonne", "restmuell"),
+                ("Singletonne (Restmüll)", "Singletonne (Restmüll)", "single"),
+                ("Biotonne", "Biotonne", "bio"),
+                ("Papiertonne", "Papiertonne", "papier"),
+                ("Kunststoff (Gelbe Tonne)", "Gelbe Tonne", "gelb"),
             )
         )
     async_add_entities(entities)
@@ -220,11 +221,15 @@ class ForchheimWasteSensor(
     _attr_device_class = SensorDeviceClass.DATE
 
     def __init__(
-        self, coordinator: ForchheimDataUpdateCoordinator, kind: str, key: str
+        self,
+        coordinator: ForchheimDataUpdateCoordinator,
+        label: str,
+        source_kind: str,
+        key: str,
     ) -> None:
         super().__init__(coordinator)
-        self.kind = kind
-        self._attr_name = f"Nächste {kind}"
+        self.source_kind = source_kind
+        self._attr_name = f"Nächste {label}"
         self._attr_unique_id = f"waste_{key}"
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, "waste_collection")},
@@ -241,7 +246,7 @@ class ForchheimWasteSensor(
             (
                 event.day
                 for event in self.coordinator.data.waste_events
-                if event.kind == self.kind and event.day >= today
+                if event.kind == self.source_kind and event.day >= today
             ),
             None,
         )

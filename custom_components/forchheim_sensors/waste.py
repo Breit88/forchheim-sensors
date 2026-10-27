@@ -101,6 +101,9 @@ def suggest_waste_locations(
         ]
         if matches:
             return matches
+        # A city-wide fallback can select a different route when reverse
+        # geocoding found a street that is absent from the collection list.
+        return []
     if district:
         area = _normalized(district)
         matches = [
