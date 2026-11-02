@@ -52,11 +52,10 @@ Voraussetzung ist Home Assistant 2026.9.0 oder neuer.
    gemeinsam eingebunden. Anfangs sind alle Stationen vorausgewählt. Bestätige
    das Aktualisierungsintervall (300 Sekunden, erlaubt sind 60 bis 3600) und
    aktiviere bei Bedarf die Abfalltermine.
-6. Wenn du Abfalltermine aktivierst, ermittelt die Integration anhand der
-   Heimposition den passenden Straßeneintrag. Ein eindeutiger Treffer wird nach
-   Prüfung des ICS-Kalenders automatisch übernommen. Bei geteilten Straßen oder
-   fehlendem Treffer wähle den Abfuhrabschnitt manuell aus. Der Eintrag lässt
-   sich später unter **Konfigurieren** ändern.
+6. Wähle bei **Straßenauswahl für den Abfallkalender** zwischen automatischer
+   Erkennung und manueller Auswahl. Bei manueller Auswahl suche deine Straße
+   oder Ortschaft in der Liste, zum Beispiel **Forchheim - Im Grund**. Der
+   Eintrag lässt sich später unter **Konfigurieren** ändern.
 
 Es sind weder ein Benutzerkonto noch ein API-Schlüssel erforderlich. Pro
 Home-Assistant-Installation kann die Integration einmal eingerichtet werden.
@@ -65,8 +64,10 @@ Andere bestehende ICS-Kalender werden nicht automatisch verändert.
 
 Bei bestehenden Installationen nach dem HACS-Update und Neustart unter
 **Einstellungen → Geräte & Dienste → Digitales Forchheim → Konfigurieren**
-**Abfalltermine einbinden** aktivieren. Für eine Monatsansicht im Dashboard die
-**Kalender-Karte** mit der neuen Kalenderentität hinzufügen.
+**Abfalltermine einbinden** aktivieren und die Option **Straße manuell auswählen**
+wählen. Im nächsten Schritt den
+Abfuhrbereich suchen. Für eine Monatsansicht im Dashboard die **Kalender-Karte**
+mit der neuen Kalenderentität hinzufügen.
 [Details](docs/waste.md)
 
 ## Verlauf und Diagramme
@@ -110,8 +111,8 @@ Beispiele und Hinweise zur sinnvollen Gruppierung nach Einheit stehen unter
 ## Datenschutz und Verantwortung
 
 Die Integration liest öffentliche Endpunkte. Zugangsdaten werden nicht
-benötigt. Für den optionalen Straßenvorschlag sendet sie die Heimkoordinaten
-**einmal beim Einrichten oder erstmaligen Aktivieren der Abfalltermine** an den
+benötigt. Nur bei automatischer Straßenerkennung sendet sie die Heimkoordinaten
+**einmal beim Einrichten oder Aktivieren der Abfalltermine** an den
 [Photon-Dienst von komoot](https://github.com/komoot/photon). Dieser Dienst
 liefert einen Adressvorschlag aus OpenStreetMap-Daten. Danach wird nur der
 ausgewählte Forchheimer Abfuhrbereich gespeichert und dessen ICS-Kalender

@@ -2,6 +2,14 @@
 
 Alle veröffentlichten Änderungen dieses Projekts werden hier zusammengefasst.
 
+## 0.4.2 – 2026-11-02
+
+- automatische oder manuelle Straßenauswahl im Einrichtungs- und Optionsdialog
+  unter Geräte & Dienste ausdrücklich auswählbar gemacht
+- bei manueller Auswahl keine Abfrage der Heimkoordinaten bei Photon
+- Auswahl von „Forchheim - Im Grund“ anhand des öffentlichen ICS-Kalenders
+  geprüft und dokumentiert
+
 ## 0.4.1 – 2026-10-27
 
 - eindeutige Straßentreffer bei der Abfallkalender-Einrichtung automatisch

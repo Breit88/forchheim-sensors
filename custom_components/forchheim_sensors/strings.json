@@ -8,12 +8,14 @@
         "data": {
           "scan_interval": "Aktualisierungsintervall",
           "stations": "Messstationen",
-          "waste_enabled": "Abfalltermine einbinden"
+          "waste_enabled": "Abfalltermine einbinden",
+          "waste_selection": "Straßenauswahl für den Abfallkalender"
         },
         "data_description": {
           "scan_interval": "Zeit zwischen Live-Abfragen in Sekunden",
           "stations": "Wähle die Stationen aus. Alle Messwerte einer Station werden gemeinsam eingebunden.",
-          "waste_enabled": "Nutzt die Heimkoordinaten einmalig für die Straßensuche. Ein eindeutiger Treffer wird automatisch übernommen; sonst folgt eine manuelle Auswahl."
+          "waste_enabled": "Erstellt einen Kalender und fünf Terminsensoren für den gewählten Abfuhrbereich.",
+          "waste_selection": "Automatisch nutzt einmalig die Heimkoordinaten. Manuell zeigt alle Straßen und Ortschaften ohne Adressabfrage."
         }
       },
       "waste": {
@@ -44,12 +46,14 @@
         "data": {
           "scan_interval": "Aktualisierungsintervall",
           "stations": "Messstationen",
-          "waste_enabled": "Abfalltermine einbinden"
+          "waste_enabled": "Abfalltermine einbinden",
+          "waste_selection": "Straßenauswahl für den Abfallkalender"
         },
         "data_description": {
           "scan_interval": "Zeit zwischen zwei Abfragen in Sekunden",
           "stations": "Nur die ausgewählten Stationen liefern Messwert-Entitäten.",
-          "waste_enabled": "Ermittelt anhand der Heimkoordinaten einmalig den passenden Abfallkalender. Bei mehreren Treffern folgt eine Auswahl."
+          "waste_enabled": "Aktiviert oder deaktiviert den Abfallkalender.",
+          "waste_selection": "Manuell zeigt alle Straßen und Ortschaften zur Auswahl. Automatisch nutzt einmalig die Heimkoordinaten."
         }
       },
       "waste": {

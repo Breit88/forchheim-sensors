@@ -20,6 +20,7 @@ from custom_components.forchheim_sensors.const import (
     CONF_STATIONS,
     CONF_WASTE_ENABLED,
     CONF_WASTE_LOCATION,
+    CONF_WASTE_SELECTION,
     DOMAIN,
 )
 from custom_components.forchheim_sensors.models import (
@@ -203,6 +204,60 @@ async def test_waste_setup_requires_choice_for_divided_street(
     assert result["options"][CONF_WASTE_LOCATION] == other_path
 
 
+async def test_waste_setup_manual_selection_skips_geocoding(
+    hass: HomeAssistant,
+) -> None:
+    """A new installation can choose its street without sharing coordinates."""
+    im_grund = "/Forchheim/Landkreis/Forchheim - Im Grund"
+    with (
+        patch(
+            "custom_components.forchheim_sensors.config_flow."
+            "ForchheimApiClient.async_get_all_stations",
+            return_value=[STATION],
+        ),
+        patch(
+            "custom_components.forchheim_sensors.config_flow."
+            "ForchheimApiClient.async_get_station_measurements",
+            return_value={STATION.uid: MEASUREMENTS},
+        ),
+        patch(
+            "custom_components.forchheim_sensors.config_flow."
+            "ForchheimApiClient.async_get_waste_locations",
+            return_value=[WasteLocation(im_grund, "Forchheim - Im Grund")],
+        ),
+        patch(
+            "custom_components.forchheim_sensors.config_flow."
+            "ForchheimApiClient.async_reverse_geocode",
+        ) as geocode,
+        patch(
+            "custom_components.forchheim_sensors.config_flow."
+            "ForchheimApiClient.async_get_waste_events",
+            return_value=(WasteEvent(date(2026, 11, 4), "Biotonne"),),
+        ) as calendar_request,
+    ):
+        form = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": "user"}
+        )
+        street_form = await hass.config_entries.flow.async_configure(
+            form["flow_id"],
+            {
+                CONF_SCAN_INTERVAL: 300,
+                CONF_WASTE_ENABLED: True,
+                CONF_WASTE_SELECTION: "manual",
+            },
+        )
+        assert street_form["type"] is FlowResultType.FORM
+        assert street_form["step_id"] == "waste"
+        result = await hass.config_entries.flow.async_configure(
+            form["flow_id"], {CONF_WASTE_LOCATION: im_grund}
+        )
+    geocode.assert_not_awaited()
+    assert calendar_request.await_count >= 1
+    assert all(call.args == (im_grund,) for call in calendar_request.await_args_list)
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["options"][CONF_WASTE_LOCATION] == im_grund
+
+
 async def test_options_allow_deselecting_all_stations(hass: HomeAssistant) -> None:
     """Station selection can be changed without reinstalling the integration."""
     entry = MockConfigEntry(
@@ -271,10 +326,69 @@ async def test_options_enable_waste_from_home_street(hass: HomeAssistant) -> Non
                 CONF_SCAN_INTERVAL: 300,
                 CONF_STATIONS: [STATION.uid],
                 CONF_WASTE_ENABLED: True,
+                CONF_WASTE_SELECTION: "automatic",
             },
         )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["data"][CONF_WASTE_LOCATION] == WASTE_PATH
+
+
+async def test_options_manual_street_selection_uses_im_grund(
+    hass: HomeAssistant,
+) -> None:
+    """An existing install can choose a street without reverse geocoding."""
+    im_grund = "/Forchheim/Landkreis/Forchheim - Im Grund"
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        version=4,
+        unique_id=CITY_UNIQUE_ID,
+        data={},
+        options={CONF_SCAN_INTERVAL: 300, CONF_STATIONS: [STATION.uid]},
+    )
+    entry.add_to_hass(hass)
+    with (
+        patch(
+            "custom_components.forchheim_sensors.config_flow."
+            "ForchheimApiClient.async_get_all_stations",
+            return_value=[STATION],
+        ),
+        patch(
+            "custom_components.forchheim_sensors.config_flow."
+            "ForchheimApiClient.async_get_waste_locations",
+            return_value=[
+                WasteLocation(WASTE_PATH, "Forchheim - Ringstraße"),
+                WasteLocation(im_grund, "Forchheim - Im Grund"),
+            ],
+        ),
+        patch(
+            "custom_components.forchheim_sensors.config_flow."
+            "ForchheimApiClient.async_reverse_geocode",
+        ) as geocode,
+        patch(
+            "custom_components.forchheim_sensors.config_flow."
+            "ForchheimApiClient.async_get_waste_events",
+            return_value=(WasteEvent(date(2026, 11, 4), "Biotonne"),),
+        ) as calendar_request,
+    ):
+        form = await hass.config_entries.options.async_init(entry.entry_id)
+        street_form = await hass.config_entries.options.async_configure(
+            form["flow_id"],
+            {
+                CONF_SCAN_INTERVAL: 300,
+                CONF_STATIONS: [STATION.uid],
+                CONF_WASTE_ENABLED: True,
+                CONF_WASTE_SELECTION: "manual",
+            },
+        )
+        assert street_form["type"] is FlowResultType.FORM
+        assert street_form["step_id"] == "waste"
+        result = await hass.config_entries.options.async_configure(
+            form["flow_id"], {CONF_WASTE_LOCATION: im_grund}
+        )
+    geocode.assert_not_awaited()
+    calendar_request.assert_awaited_once_with(im_grund)
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["data"][CONF_WASTE_LOCATION] == im_grund
 
 
 async def test_options_allow_manual_waste_area_change(hass: HomeAssistant) -> None:

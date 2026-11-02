@@ -11,6 +11,7 @@ CONF_LONGITUDE: Final = "longitude"
 CONF_SCAN_INTERVAL: Final = "scan_interval"
 CONF_STATIONS: Final = "stations"
 CONF_WASTE_ENABLED: Final = "waste_enabled"
+CONF_WASTE_SELECTION: Final = "waste_selection"
 CONF_WASTE_LOCATION: Final = "waste_location"
 CITY_UNIQUE_ID: Final = "forchheim_citywide"
 

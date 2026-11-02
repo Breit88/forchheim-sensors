@@ -30,6 +30,7 @@ from .const import (
     CONF_STATIONS,
     CONF_WASTE_ENABLED,
     CONF_WASTE_LOCATION,
+    CONF_WASTE_SELECTION,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     MAX_SCAN_INTERVAL,
@@ -45,6 +46,7 @@ def _schema(
     stations: list[Station],
     selected: list[str],
     waste_enabled: bool = False,
+    waste_selection: str = "automatic",
 ) -> vol.Schema:
     """Return the shared setup schema."""
     category_names = {
@@ -73,6 +75,15 @@ def _schema(
                 )
             ),
             vol.Required(CONF_WASTE_ENABLED, default=waste_enabled): BooleanSelector(),
+            vol.Required(CONF_WASTE_SELECTION, default=waste_selection): SelectSelector(
+                SelectSelectorConfig(
+                    options=[
+                        {"value": "automatic", "label": "Straße automatisch erkennen"},
+                        {"value": "manual", "label": "Straße manuell auswählen"},
+                    ],
+                    mode=SelectSelectorMode.DROPDOWN,
+                )
+            ),
             vol.Required(CONF_STATIONS, default=selected): SelectSelector(
                 SelectSelectorConfig(
                     options=station_choices,
@@ -94,6 +105,7 @@ class ForchheimSensorsConfigFlow(ConfigFlow, domain=DOMAIN):
         self._setup_input: dict[str, Any] = {}
         self._waste_locations: list[WasteLocation] | None = None
         self._waste_default: str | None = None
+        self._manual_waste_selection = False
         self._stations: list[Station] | None = None
 
     async def async_step_user(
@@ -124,6 +136,9 @@ class ForchheimSensorsConfigFlow(ConfigFlow, domain=DOMAIN):
             if not errors:
                 if user_input[CONF_WASTE_ENABLED]:
                     self._setup_input = user_input
+                    self._manual_waste_selection = (
+                        user_input.get(CONF_WASTE_SELECTION) == "manual"
+                    )
                     return await self.async_step_waste()
                 return self.async_create_entry(
                     title="Digitales Forchheim",
@@ -153,27 +168,28 @@ class ForchheimSensorsConfigFlow(ConfigFlow, domain=DOMAIN):
                 self._waste_locations = await client.async_get_waste_locations()
             except (ForchheimApiError, ForchheimInvalidResponseError):
                 return self.async_abort(reason="waste_unavailable")
-            try:
-                address = await client.async_reverse_geocode(
-                    self.hass.config.latitude, self.hass.config.longitude
-                )
-            except ForchheimApiError:
-                address = {}
-            suggestions = suggest_waste_locations(self._waste_locations, address)
-            if len(suggestions) == 1:
-                self._waste_default = suggestions[0].path
-            self._waste_locations = suggestions + [
-                location
-                for location in self._waste_locations
-                if location not in suggestions
-            ]
-            if len(suggestions) == 1 and user_input is None:
+            if not self._manual_waste_selection:
                 try:
-                    await client.async_get_waste_events(suggestions[0].path)
-                except (ForchheimApiError, ForchheimInvalidResponseError):
-                    pass
-                else:
-                    return self._create_entry(suggestions[0].path)
+                    address = await client.async_reverse_geocode(
+                        self.hass.config.latitude, self.hass.config.longitude
+                    )
+                except ForchheimApiError:
+                    address = {}
+                suggestions = suggest_waste_locations(self._waste_locations, address)
+                if len(suggestions) == 1:
+                    self._waste_default = suggestions[0].path
+                self._waste_locations = suggestions + [
+                    location
+                    for location in self._waste_locations
+                    if location not in suggestions
+                ]
+                if len(suggestions) == 1 and user_input is None:
+                    try:
+                        await client.async_get_waste_events(suggestions[0].path)
+                    except (ForchheimApiError, ForchheimInvalidResponseError):
+                        pass
+                    else:
+                        return self._create_entry(suggestions[0].path)
         errors: dict[str, str] = {}
         if user_input is not None:
             location = next(
@@ -226,6 +242,7 @@ class ForchheimOptionsFlow(OptionsFlow):
         self._new_options: dict[str, Any] = {}
         self._waste_locations: list[WasteLocation] | None = None
         self._waste_default: str | None = None
+        self._manual_waste_selection = False
         self._stations: list[Station] | None = None
 
     async def async_step_init(
@@ -253,6 +270,9 @@ class ForchheimOptionsFlow(OptionsFlow):
                     CONF_STATIONS: selected,
                 }
                 if user_input[CONF_WASTE_ENABLED]:
+                    self._manual_waste_selection = (
+                        user_input.get(CONF_WASTE_SELECTION, "manual") == "manual"
+                    )
                     return await self.async_step_waste()
                 return self.async_create_entry(data=self._new_options)
         current = int(
@@ -267,6 +287,7 @@ class ForchheimOptionsFlow(OptionsFlow):
                     CONF_STATIONS, [station.uid for station in self._stations]
                 ),
                 bool(self.config_entry.options.get(CONF_WASTE_LOCATION)),
+                "manual",
             ),
             errors=errors,
         )
@@ -282,7 +303,7 @@ class ForchheimOptionsFlow(OptionsFlow):
             except (ForchheimApiError, ForchheimInvalidResponseError):
                 return self.async_abort(reason="waste_unavailable")
             self._waste_default = self.config_entry.options.get(CONF_WASTE_LOCATION)
-            if self._waste_default is None:
+            if not self._manual_waste_selection:
                 try:
                     address = await client.async_reverse_geocode(
                         self.hass.config.latitude, self.hass.config.longitude
