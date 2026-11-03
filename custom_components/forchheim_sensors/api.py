@@ -196,18 +196,13 @@ class ForchheimApiClient:
     async def async_get_waste_events(
         self, location_path: str
     ) -> tuple[WasteEvent, ...]:
-        """Fetch the selected official ICS feed at most once in six hours."""
+        """Fetch the selected official ICS feed."""
         if not location_path.startswith("/Forchheim/Landkreis/") or "/" in (
             location_path.removeprefix("/Forchheim/Landkreis/")
         ):
             raise ForchheimApiError("Invalid waste location")
-        cached = self._get_cached(f"waste:{location_path}", 21_600)
-        if cached is not None:
-            return cached
         url = f"{WASTE_BASE_URL}{quote(location_path, safe='/()-')}/ics"
-        events = parse_waste_ics(await self._async_request_text(url))
-        self._set_cached(f"waste:{location_path}", events)
-        return events
+        return parse_waste_ics(await self._async_request_text(url))
 
     async def _async_grafana_query(self, query: str) -> dict[str, Any]:
         """Execute one public Grafana KQL query."""

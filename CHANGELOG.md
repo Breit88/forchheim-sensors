@@ -2,13 +2,21 @@
 
 Alle veröffentlichten Änderungen dieses Projekts werden hier zusammengefasst.
 
-## 0.4.2 – 2026-11-02
+## 0.5.0 – 2026-11-03
 
 - automatische oder manuelle Straßenauswahl im Einrichtungs- und Optionsdialog
   unter Geräte & Dienste ausdrücklich auswählbar gemacht
 - bei manueller Auswahl keine Abfrage der Heimkoordinaten bei Photon
 - Auswahl von „Forchheim - Im Grund“ anhand des öffentlichen ICS-Kalenders
   geprüft und dokumentiert
+- unabhängigen Abfallkalender-Abgleich ergänzt; Ausfälle der Messdatenabfrage
+  unterbrechen bereits geladene Abfalltermine nicht
+- überlappende ganztägige Termine bei Kalenderabfragen korrigiert
+- Abrufstatus und Zeitpunkt des letzten erfolgreichen Abrufs als Diagnose-Sensoren
+  ergänzt
+- Vorlage für Erinnerungen vor der Abholung hinzugefügt
+- mehrere Straßen oder Ortschaften mit eigenem Kalender und Terminsensoren
+  auswählbar gemacht; bestehende Entitäts-IDs bleiben erhalten
 
 ## 0.4.1 – 2026-10-27
 

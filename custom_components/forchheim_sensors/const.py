@@ -13,6 +13,7 @@ CONF_STATIONS: Final = "stations"
 CONF_WASTE_ENABLED: Final = "waste_enabled"
 CONF_WASTE_SELECTION: Final = "waste_selection"
 CONF_WASTE_LOCATION: Final = "waste_location"
+CONF_WASTE_LOCATIONS: Final = "waste_locations"
 CITY_UNIQUE_ID: Final = "forchheim_citywide"
 
 DEFAULT_SCAN_INTERVAL: Final = 300

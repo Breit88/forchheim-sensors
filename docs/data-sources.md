@@ -11,6 +11,7 @@ benötigt keine Zugangsdaten.
 | Baustellen | [Geoportal Forchheim](https://geodb.forchheim.de/Api/Baustellen/GeoJson/) | aktive Baustellen und nächste Entfernung |
 | Haltestellen | öffentlicher VGN-Datensatz über den Digitalen Zwilling | nächste Bus- und Bahnstation |
 | Verkehrsprofile | Floating-Car-Data des Digitalen Zwillings | Durchschnittsgeschwindigkeit und Beobachtungszahl |
+| Abfalltermine | [Landkreis Forchheim](https://www.abfalltermine-forchheim.de/Forchheim/Landkreis/Forchheim) | Kalender und nächste Abholtermine je ausgewähltem Bereich |
 
 ## Aktualisierungsrhythmus
 
@@ -21,6 +22,7 @@ benötigt keine Zugangsdaten.
 | Orte, Spielplätze und Haltestellen | 6 Stunden |
 | Verkehrsprofile | 6 Stunden je Profil |
 | Baustellen | 15 Minuten |
+| Abfalltermine | 6 Stunden je ausgewähltem Bereich |
 
 Das Messintervall kann in den Optionen der Integration auf 60 bis 3600
 Sekunden eingestellt werden. Die längeren Caches entlasten die öffentlichen
@@ -51,6 +53,11 @@ bleiben vorhandene Werte erhalten. Der Fehler erscheint in den
 Diagnoseinformationen, damit ein Ausfall der Quelle von einem Fehler der
 Integration unterschieden werden kann.
 
-Die Heimkoordinaten aus Home Assistant werden ausschließlich lokal für die
-Entfernungssensoren verwendet und nicht an diese Quellen gesendet.
+Die Abfallkalender haben einen eigenen Abrufrhythmus. Bei einem Fehler bleiben
+bereits geladene Termine sichtbar; ein Diagnose-Sensor zeigt den fehlgeschlagenen
+Abruf an. Die Stadtmesswerte beeinflussen diesen Abruf nicht.
+
+Bei automatischer Straßenerkennung werden die Heimkoordinaten einmalig an den
+Photon-Adressdienst gesendet. Bei manueller Auswahl bleiben sie lokal und
+werden nur für Entfernungssensoren verwendet.
 

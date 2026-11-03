@@ -71,4 +71,3 @@ class CityData:
     transit_stops: tuple[Place, ...]
     construction_sites: tuple[Place, ...]
     traffic: TrafficSnapshot
-    waste_events: tuple[WasteEvent, ...] = ()

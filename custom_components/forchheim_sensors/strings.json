@@ -22,7 +22,7 @@
         "title": "Abfallgebiet auswählen",
         "description": "Wähle die passende Straße oder Ortschaft. Manche Straßen sind nach Abfuhrabschnitt aufgeteilt.",
         "data": {
-          "waste_location": "Straße oder Ortschaft"
+          "waste_locations": "Straßen oder Ortschaften"
         }
       }
     },
@@ -59,7 +59,7 @@
       "waste": {
         "title": "Abfallgebiet auswählen",
         "data": {
-          "waste_location": "Straße oder Ortschaft"
+          "waste_locations": "Straßen oder Ortschaften"
         }
       }
     },

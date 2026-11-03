@@ -3,11 +3,15 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import date
+from hashlib import sha256
 from html.parser import HTMLParser
+from typing import Any
 from urllib.parse import unquote
 
+from .const import CONF_WASTE_LOCATION, CONF_WASTE_LOCATIONS
 from .models import WasteEvent
 from .parser import ForchheimInvalidResponseError
 
@@ -18,6 +22,19 @@ class WasteLocation:
 
     path: str
     name: str
+
+
+def configured_waste_locations(options: Mapping[str, Any]) -> list[str]:
+    """Read multiple areas while retaining existing single-area entries."""
+    if CONF_WASTE_LOCATIONS in options:
+        return list(dict.fromkeys(options[CONF_WASTE_LOCATIONS]))
+    path = options.get(CONF_WASTE_LOCATION)
+    return [path] if path else []
+
+
+def waste_entity_suffix(path: str, primary: str | None) -> str:
+    """Give additional areas stable identifiers without renaming existing entities."""
+    return "" if path == primary else f"_{sha256(path.encode()).hexdigest()[:12]}"
 
 
 class _LocationParser(HTMLParser):

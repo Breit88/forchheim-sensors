@@ -22,7 +22,7 @@
         "title": "Choose collection area",
         "description": "Choose your street or locality. Some streets are split into collection sections.",
         "data": {
-          "waste_location": "Street or locality"
+          "waste_locations": "Streets or localities"
         }
       }
     },
@@ -59,7 +59,7 @@
       "waste": {
         "title": "Choose collection area",
         "data": {
-          "waste_location": "Street or locality"
+          "waste_locations": "Streets or localities"
         }
       }
     },

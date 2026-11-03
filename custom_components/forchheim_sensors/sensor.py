@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 from math import asin, cos, radians, sin, sqrt
 from typing import Any
 
@@ -26,6 +26,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
@@ -38,8 +39,9 @@ from .const import (
     GRAFANA_DASHBOARDS,
     TENANT_UID,
 )
-from .coordinator import ForchheimDataUpdateCoordinator
+from .coordinator import ForchheimDataUpdateCoordinator, ForchheimWasteUpdateCoordinator
 from .models import CityData, Place, Station
+from .waste import configured_waste_locations, waste_entity_suffix
 
 PARALLEL_UPDATES = 0
 ATTRIBUTION = "Daten: Stadt Forchheim / Smart Data Services"
@@ -185,23 +187,18 @@ async def async_setup_entry(
 ) -> None:
     """Set up all public Forchheim sensor entities."""
     coordinator = entry.runtime_data
-    data = coordinator.data
     entities: list[SensorEntity] = []
-    selected = entry.options.get(CONF_STATIONS)
-    for station in data.stations:
-        if selected is not None and station.uid not in selected:
-            continue
+    primary = entry.options.get(CONF_WASTE_LOCATION)
+    for path in configured_waste_locations(entry.options):
+        waste_coordinator = coordinator.waste_coordinators[path]
         entities.extend(
-            ForchheimMeasurementSensor(coordinator, station, description)
-            for description in SENSORS
-            if station.category in description.categories
-        )
-    entities.extend(
-        _summary_entities(coordinator, hass.config.latitude, hass.config.longitude)
-    )
-    if entry.options.get(CONF_WASTE_LOCATION):
-        entities.extend(
-            ForchheimWasteSensor(coordinator, label, source_kind, key)
+            ForchheimWasteSensor(
+                waste_coordinator,
+                label,
+                source_kind,
+                key,
+                primary,
+            )
             for label, source_kind, key in (
                 ("Restmülltonne", "Restmülltonne", "restmuell"),
                 ("Singletonne (Restmüll)", "Singletonne (Restmüll)", "single"),
@@ -210,11 +207,58 @@ async def async_setup_entry(
                 ("Kunststoff (Gelbe Tonne)", "Gelbe Tonne", "gelb"),
             )
         )
+        entities.extend(
+            [
+                ForchheimWasteStatusSensor(waste_coordinator, primary),
+                ForchheimWasteLastSuccessSensor(waste_coordinator, primary),
+            ]
+        )
     async_add_entities(entities)
+
+    def add_city_entities() -> None:
+        """Add city sensors when the city source first becomes available."""
+        if (data := coordinator.data) is None:
+            return
+        city_entities: list[SensorEntity] = []
+        selected = entry.options.get(CONF_STATIONS)
+        for station in data.stations:
+            if selected is not None and station.uid not in selected:
+                continue
+            city_entities.extend(
+                ForchheimMeasurementSensor(coordinator, station, description)
+                for description in SENSORS
+                if station.category in description.categories
+            )
+        city_entities.extend(
+            _summary_entities(coordinator, hass.config.latitude, hass.config.longitude)
+        )
+        async_add_entities(city_entities)
+
+    if coordinator.data is not None:
+        add_city_entities()
+    else:
+        city_added = False
+
+        def add_city_after_recovery() -> None:
+            nonlocal city_added
+            if not city_added and coordinator.data is not None:
+                city_added = True
+                add_city_entities()
+
+        entry.async_on_unload(coordinator.async_add_listener(add_city_after_recovery))
+
+
+def _waste_device_info(path: str, suffix: str) -> DeviceInfo:
+    return DeviceInfo(
+        identifiers={(DOMAIN, f"waste_collection{suffix}")},
+        name=f"Abfalltermine {path.rsplit('/', 1)[-1]}",
+        manufacturer="Landkreis Forchheim",
+        model="Abfallkalender",
+    )
 
 
 class ForchheimWasteSensor(
-    CoordinatorEntity[ForchheimDataUpdateCoordinator], SensorEntity
+    CoordinatorEntity[ForchheimWasteUpdateCoordinator], SensorEntity
 ):
     """Date of the next collection for one standard waste type."""
 
@@ -222,21 +266,27 @@ class ForchheimWasteSensor(
 
     def __init__(
         self,
-        coordinator: ForchheimDataUpdateCoordinator,
+        coordinator: ForchheimWasteUpdateCoordinator,
         label: str,
         source_kind: str,
         key: str,
+        primary: str | None = None,
     ) -> None:
         super().__init__(coordinator)
         self.source_kind = source_kind
-        self._attr_name = f"Nächste {label}"
-        self._attr_unique_id = f"waste_{key}"
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, "waste_collection")},
-            name="Abfalltermine Forchheim",
-            manufacturer="Landkreis Forchheim",
-            model="Abfallkalender",
+        suffix = waste_entity_suffix(coordinator.path, primary)
+        self._attr_name = (
+            f"Nächste {label}"
+            if not suffix
+            else f"Nächste {label} {coordinator.path.rsplit('/', 1)[-1]}"
         )
+        self._attr_unique_id = f"waste_{key}{suffix}"
+        self._attr_device_info = _waste_device_info(coordinator.path, suffix)
+
+    @property
+    def available(self) -> bool:
+        """Retain the last known collection date during a source outage."""
+        return self.coordinator.data is not None
 
     @property
     def native_value(self) -> date | None:
@@ -245,11 +295,64 @@ class ForchheimWasteSensor(
         return next(
             (
                 event.day
-                for event in self.coordinator.data.waste_events
+                for event in self.coordinator.data or ()
                 if event.kind == self.source_kind and event.day >= today
             ),
             None,
         )
+
+
+class ForchheimWasteStatusSensor(
+    CoordinatorEntity[ForchheimWasteUpdateCoordinator], SensorEntity
+):
+    """Show whether the most recent calendar fetch succeeded."""
+
+    _attr_name = "Abfallkalender Abrufstatus"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    def __init__(
+        self, coordinator: ForchheimWasteUpdateCoordinator, primary: str | None = None
+    ) -> None:
+        super().__init__(coordinator)
+        suffix = waste_entity_suffix(coordinator.path, primary)
+        self._attr_unique_id = f"waste_status{suffix}"
+        self._attr_device_info = _waste_device_info(coordinator.path, suffix)
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def native_value(self) -> str:
+        if self.coordinator.last_update_success:
+            return "Aktuell"
+        return "Abruf fehlgeschlagen"
+
+
+class ForchheimWasteLastSuccessSensor(
+    CoordinatorEntity[ForchheimWasteUpdateCoordinator], SensorEntity
+):
+    """Timestamp of the last successful waste feed retrieval."""
+
+    _attr_name = "Abfallkalender zuletzt geladen"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
+
+    def __init__(
+        self, coordinator: ForchheimWasteUpdateCoordinator, primary: str | None = None
+    ) -> None:
+        super().__init__(coordinator)
+        suffix = waste_entity_suffix(coordinator.path, primary)
+        self._attr_unique_id = f"waste_last_success{suffix}"
+        self._attr_device_info = _waste_device_info(coordinator.path, suffix)
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def native_value(self) -> datetime | None:
+        return self.coordinator.last_successful_update
 
 
 class ForchheimMeasurementSensor(
