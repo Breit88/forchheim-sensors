@@ -2,7 +2,7 @@
 
 Alle veröffentlichten Änderungen dieses Projekts werden hier zusammengefasst.
 
-## 0.6.0 – 2026-11-17
+## 0.4.2 – 2026-11-17
 
 - Ja/Nein-Zustand des Abfallkalenders von der Geräteseite entfernt; bestehende
   Kalenderentitäten bleiben für Kalender-Karten und Automationen verfügbar
@@ -11,8 +11,6 @@ Alle veröffentlichten Änderungen dieses Projekts werden hier zusammengefasst.
 - vollständige Ortslisten in den Übersichts-Sensoren und Anzahl der
   Bushaltestellen ergänzt
 - öffentliche Ortsdaten anhand der Stadtgrenze Forchheims gefiltert
-
-## 0.5.0 – 2026-11-03
 
 - automatische oder manuelle Straßenauswahl im Einrichtungs- und Optionsdialog
   unter Geräte & Dienste ausdrücklich auswählbar gemacht
