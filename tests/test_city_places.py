@@ -17,7 +17,8 @@ from custom_components.forchheim_sensors.const import (
     TRANSIT_URLS,
 )
 from custom_components.forchheim_sensors.geography import is_in_forchheim
-from custom_components.forchheim_sensors.models import Place, TrafficSnapshot
+from custom_components.forchheim_sensors.icon_assets import PLACE_PICTURES
+from custom_components.forchheim_sensors.models import Place, Station, TrafficSnapshot
 
 CITY = (11.06, 49.72)
 OUTSIDE = (11.005, 49.59)
@@ -79,10 +80,11 @@ async def test_all_city_places_appear_on_map_and_in_summary(
     hass.config.longitude = OUTSIDE[0]
     bus = Place("bus_1", "BUS", "Paradeplatz", CITY[1], CITY[0])
     playground = Place("play_1", "playground", "Stadtpark", CITY[1], CITY[0])
+    weather = Station("weather_1", "Nord", CITY[1], CITY[0])
     construction = [
         Place(
             f"build_{number}",
-            "construction",
+            "Vollsperrung",
             f"Sperrung {number}",
             CITY[1] + number / 100000,
             CITY[0],
@@ -95,7 +97,7 @@ async def test_all_city_places_appear_on_map_and_in_summary(
         patch(
             "custom_components.forchheim_sensors.api."
             "ForchheimApiClient.async_get_all_stations",
-            return_value=[],
+            return_value=[weather],
         ),
         patch(
             "custom_components.forchheim_sensors.api."
@@ -117,12 +119,20 @@ async def test_all_city_places_appear_on_map_and_in_summary(
         await hass.async_block_till_done()
 
     points = hass.states.async_all("geo_location")
-    assert len(points) == 27
+    assert len(points) == 28
     assert {state.attributes["source"] for state in points} == {
         "forchheim_sensors_bus",
         "forchheim_sensors_playground",
         "forchheim_sensors_construction",
+        "forchheim_sensors_weather",
     }
+    for source, picture in PLACE_PICTURES.items():
+        point = next(
+            state
+            for state in points
+            if state.attributes["source"] == f"forchheim_sensors_{source}"
+        )
+        assert point.attributes["entity_picture"] == picture
     entities = er.async_entries_for_config_entry(er.async_get(hass), entry.entry_id)
     bus_count = next(e for e in entities if e.unique_id == "city_bus_stop_count")
     assert hass.states.get(bus_count.entity_id).state == "1"
@@ -147,5 +157,6 @@ async def test_all_city_places_appear_on_map_and_in_summary(
     } == {
         "forchheim_sensors_bus",
         "forchheim_sensors_playground",
+        "forchheim_sensors_weather",
     }
     assert await hass.config_entries.async_unload(entry.entry_id)

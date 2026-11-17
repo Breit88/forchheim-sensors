@@ -28,6 +28,7 @@ from custom_components.forchheim_sensors.const import (
     CONF_WASTE_SELECTION,
     DOMAIN,
 )
+from custom_components.forchheim_sensors.icon_assets import WASTE_PICTURES
 from custom_components.forchheim_sensors.models import (
     Measurement,
     Station,
@@ -625,7 +626,11 @@ async def test_selected_station_and_waste_entities(hass: HomeAssistant) -> None:
     assert calendars[0].device_id is None
     for _, unique_id in waste_kinds:
         sensor = next(entity for entity in entities if entity.unique_id == unique_id)
-        assert hass.states.get(sensor.entity_id).state == next_day.isoformat()
+        state = hass.states.get(sensor.entity_id)
+        assert state.state == next_day.isoformat()
+        assert state.attributes["entity_picture"] == WASTE_PICTURES[
+            unique_id.removeprefix("waste_")
+        ]
     status = next(entity for entity in entities if entity.unique_id == "waste_status")
     assert hass.states.get(status.entity_id).state == "Abruf fehlgeschlagen"
     last_success = next(
