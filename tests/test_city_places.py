@@ -80,7 +80,7 @@ async def test_all_city_places_appear_on_map_and_in_summary(
     hass.config.longitude = OUTSIDE[0]
     bus = Place("bus_1", "BUS", "Paradeplatz", CITY[1], CITY[0])
     playground = Place("play_1", "playground", "Stadtpark", CITY[1], CITY[0])
-    weather = Station("weather_1", "Nord", CITY[1], CITY[0])
+    weather = Station("19-843", "Nord", CITY[1], CITY[0])
     construction = [
         Place(
             f"build_{number}",
@@ -98,6 +98,11 @@ async def test_all_city_places_appear_on_map_and_in_summary(
             "custom_components.forchheim_sensors.api."
             "ForchheimApiClient.async_get_all_stations",
             return_value=[weather],
+        ),
+        patch(
+            "custom_components.forchheim_sensors.api."
+            "ForchheimApiClient.async_get_station_measurements",
+            return_value={"19-843": {}},
         ),
         patch(
             "custom_components.forchheim_sensors.api."
