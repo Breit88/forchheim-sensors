@@ -21,8 +21,9 @@ Nach Download und Neustart:
 - Temperatur und Luftfeuchtigkeit ausgewählter weiterer Stadt-Sensoren
 - Luft- und Oberflächentemperatur des auswählbaren Fahrbahnsensors an der Lila Brücke
 - zeitabhängige Verkehrsprofile für Werktage und Wochenenden
-- Anzahl von Parkmöglichkeiten, Fahrradständern und Spielplätzen
-- aktive Baustellen einschließlich Zeitraum und Adresse
+- Anzahl von Parkmöglichkeiten, Fahrradständern, Bushaltestellen und Spielplätzen
+- alle Bushaltestellen, Spielplätze und aktiven Baustellen im Stadtgebiet als
+  Kartenpunkte; vollständige Listen in den Übersichts-Sensoren
 - Entfernung zur nächsten Bus- und Bahnhaltestelle, Baustelle und zum nächsten
   Spielplatz, ausgehend von der Home-Assistant-Position
 - Zustandsklassen für alle numerischen Messwerte, damit Recorder-Verläufe und
@@ -69,6 +70,16 @@ wählen. Im nächsten Schritt die Abfuhrbereiche suchen und auswählen. Für ein
 Monatsansicht im Dashboard die **Kalender-Karte** mit den neuen Kalenderentitäten
 hinzufügen.
 [Details](docs/waste.md)
+
+Die Kalenderentität bleibt für Kalender-Karten und Automationen verfügbar. Auf
+der Geräteseite erscheinen nur die Abholtermine und Diagnosewerte; der
+Ja/Nein-Zustand des Kalenders wird dort nicht mehr angezeigt.
+
+Alle Orte im Stadtgebiet findest du auf der Home-Assistant-Karte oder in einer
+Karten-Karte. Die Kartenpunkte sind nach den Quellen
+`forchheim_sensors_bus`, `forchheim_sensors_playground` und
+`forchheim_sensors_construction` gruppiert. Die Übersichts-Sensoren enthalten
+die vollständigen Namen beziehungsweise Baustellendetails als Attribute.
 
 ## Verlauf und Diagramme
 

@@ -7,9 +7,10 @@ benötigt keine Zugangsdaten.
 | --- | --- | --- |
 | Stationsverzeichnis und Messwerte | [SensorThings-Endpunkt des Digitalen Zwillings](https://dz.forchheim.de/datasource-data/sensorthings/Locations/) und [SDS-Dashboard-API](https://dashboard-public.sds.community/) | Wetter-, Klima- und Fahrbahnsensoren |
 | Orte | [Ortsinformationen der Stadt](https://dz.forchheim.de/datasource-data/ortsinfo/ortsinfo.json) | Parkmöglichkeiten und Fahrradständer |
-| Spielplätze | Digitaler Zwilling Forchheim | Anzahl und nächste Entfernung |
-| Baustellen | [Geoportal Forchheim](https://geodb.forchheim.de/Api/Baustellen/GeoJson/) | aktive Baustellen und nächste Entfernung |
-| Haltestellen | öffentlicher VGN-Datensatz über den Digitalen Zwilling | nächste Bus- und Bahnstation |
+| Spielplätze | Digitaler Zwilling Forchheim | Anzahl, vollständige Liste, Kartenpunkte und nächste Entfernung |
+| Baustellen | [Geoportal Forchheim](https://geodb.forchheim.de/Api/Baustellen/GeoJson/) | aktive Baustellen als Liste und Kartenpunkte sowie nächste Entfernung |
+| Haltestellen | öffentlicher VGN-Datensatz über den Digitalen Zwilling | alle Busstopps im Stadtgebiet als Liste und Kartenpunkte; nächste Bus- und Bahnstation |
+| Stadtgrenze | [Verwaltungsatlas Bayern (WFS)](https://gdiserv.bayern.de/srv1970/services/verwaltungsatlas_verwaltungsgrenzen-wfs) | Abgrenzung der Orte auf das Stadtgebiet Forchheim |
 | Verkehrsprofile | Floating-Car-Data des Digitalen Zwillings | Durchschnittsgeschwindigkeit und Beobachtungszahl |
 | Abfalltermine | [Landkreis Forchheim](https://www.abfalltermine-forchheim.de/Forchheim/Landkreis/Forchheim) | Kalender und nächste Abholtermine je ausgewähltem Bereich |
 
@@ -28,6 +29,11 @@ Das Messintervall kann in den Optionen der Integration auf 60 bis 3600
 Sekunden eingestellt werden. Die längeren Caches entlasten die öffentlichen
 Server; eine kürzere Einstellung des Messintervalls verkürzt diese Caches
 nicht.
+
+Für die Stadtgrenze nutzt die Integration eine mitgelieferte, vereinfachte
+Geometrie der Gemeinde Forchheim. Sie wird nicht bei jeder Aktualisierung
+erneut abgefragt. Orte ohne Koordinaten können nicht als Kartenpunkt angezeigt
+werden.
 
 ## Bedeutung der Verkehrsdaten
 

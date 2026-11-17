@@ -5,7 +5,6 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date, datetime
-from math import asin, cos, radians, sin, sqrt
 from typing import Any
 
 from homeassistant.components.sensor import (
@@ -40,6 +39,7 @@ from .const import (
     TENANT_UID,
 )
 from .coordinator import ForchheimDataUpdateCoordinator, ForchheimWasteUpdateCoordinator
+from .geography import distance_km
 from .models import CityData, Place, Station
 from .waste import configured_waste_locations, waste_entity_suffix
 
@@ -151,29 +151,13 @@ SENSORS: tuple[ForchheimSensorEntityDescription, ...] = (
 )
 
 
-def _distance_km(
-    latitude_a: float,
-    longitude_a: float,
-    latitude_b: float,
-    longitude_b: float,
-) -> float:
-    """Calculate great-circle distance between two positions."""
-    radius = 6371.0
-    lat_a = radians(latitude_a)
-    lat_b = radians(latitude_b)
-    delta_lat = radians(latitude_b - latitude_a)
-    delta_lon = radians(longitude_b - longitude_a)
-    value = sin(delta_lat / 2) ** 2 + cos(lat_a) * cos(lat_b) * sin(delta_lon / 2) ** 2
-    return 2 * radius * asin(sqrt(value))
-
-
 def _nearest(
     data: tuple[Place, ...], latitude: float, longitude: float
 ) -> Place | None:
     """Return the nearest place to Home Assistant's home location."""
     return min(
         data,
-        key=lambda place: _distance_km(
+        key=lambda place: distance_km(
             latitude, longitude, place.latitude, place.longitude
         ),
         default=None,
@@ -509,7 +493,7 @@ def _summary_entities(
             if place is None:
                 return 0.0
             return round(
-                _distance_km(
+                distance_km(
                     home_latitude, home_longitude, place.latitude, place.longitude
                 ),
                 2,
@@ -561,6 +545,29 @@ def _summary_entities(
             "Spielplätze",
             "mdi:slide",
             lambda data: len(data.playgrounds),
+            lambda data: {"sites": sorted(place.name for place in data.playgrounds)},
+        ),
+        ForchheimSummarySensor(
+            coordinator,
+            "bus_stop_count",
+            "Bushaltestellen",
+            "mdi:bus-stop",
+            lambda data: len(
+                {
+                    (place.name, place.latitude, place.longitude)
+                    for place in data.transit_stops
+                    if place.category == "BUS"
+                }
+            ),
+            lambda data: {
+                "stops": sorted(
+                    {
+                        place.name
+                        for place in data.transit_stops
+                        if place.category == "BUS"
+                    }
+                )
+            },
         ),
         ForchheimSummarySensor(
             coordinator,
@@ -575,7 +582,7 @@ def _summary_entities(
                         "address": place.address,
                         **place.extra,
                     }
-                    for place in data.construction_sites[:20]
+                    for place in data.construction_sites
                 ]
             },
         ),

@@ -3,17 +3,15 @@
 from __future__ import annotations
 
 from datetime import datetime, time, timedelta
-from urllib.parse import quote
 
 from homeassistant.components.calendar import CalendarEntity, CalendarEvent
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
 from . import ForchheimConfigEntry
-from .const import CONF_WASTE_LOCATION, DOMAIN, WASTE_BASE_URL
+from .const import CONF_WASTE_LOCATION
 from .coordinator import ForchheimWasteUpdateCoordinator
 from .models import WasteEvent
 from .waste import configured_waste_locations, waste_entity_suffix
@@ -50,13 +48,6 @@ class ForchheimWasteCalendar(
             "Forchheim Abfalltermine"
             if not suffix
             else f"Abfalltermine {path.rsplit('/', 1)[-1]}"
-        )
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, f"waste_collection{suffix}")},
-            name=f"Abfalltermine {path.rsplit('/', 1)[-1]}",
-            manufacturer="Landkreis Forchheim",
-            model="Abfallkalender",
-            configuration_url=f"{WASTE_BASE_URL}{quote(path, safe='/()-')}",
         )
 
     @property

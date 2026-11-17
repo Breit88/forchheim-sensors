@@ -2,6 +2,16 @@
 
 Alle veröffentlichten Änderungen dieses Projekts werden hier zusammengefasst.
 
+## 0.6.0 – 2026-11-17
+
+- Ja/Nein-Zustand des Abfallkalenders von der Geräteseite entfernt; bestehende
+  Kalenderentitäten bleiben für Kalender-Karten und Automationen verfügbar
+- alle Bushaltestellen, Spielplätze und aktiven Baustellen im Stadtgebiet als
+  Kartenpunkte hinzugefügt, unabhängig von der Heimposition
+- vollständige Ortslisten in den Übersichts-Sensoren und Anzahl der
+  Bushaltestellen ergänzt
+- öffentliche Ortsdaten anhand der Stadtgrenze Forchheims gefiltert
+
 ## 0.5.0 – 2026-11-03
 
 - automatische oder manuelle Straßenauswahl im Einrichtungs- und Optionsdialog

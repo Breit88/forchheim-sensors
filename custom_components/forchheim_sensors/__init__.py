@@ -16,7 +16,7 @@ from .const import CITY_UNIQUE_ID, CONF_STATIONS, CONF_WASTE_LOCATION, DOMAIN
 from .coordinator import ForchheimDataUpdateCoordinator, ForchheimWasteUpdateCoordinator
 from .waste import configured_waste_locations, waste_entity_suffix
 
-PLATFORMS = [Platform.SENSOR, Platform.CALENDAR]
+PLATFORMS = [Platform.SENSOR, Platform.CALENDAR, Platform.GEO_LOCATION]
 _STATION_ENTITY_ID = re.compile(r"^(\d+-\d+)_")
 
 type ForchheimConfigEntry = ConfigEntry[ForchheimDataUpdateCoordinator]
@@ -86,6 +86,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ForchheimConfigEntry) ->
     if coordinator.data is not None:
         _sync_station_entities(hass, entry, set(entry.options.get(CONF_STATIONS, ())))
     _sync_waste_entities(hass, entry)
+    _detach_waste_calendars(hass, entry)
     entry.runtime_data = coordinator
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(_async_reload_entry))
@@ -150,3 +151,15 @@ def _sync_waste_entities(hass: HomeAssistant, entry: ForchheimConfigEntry) -> No
             registry.async_update_entity(
                 entity.entity_id, disabled_by=er.RegistryEntryDisabler.INTEGRATION
             )
+
+
+def _detach_waste_calendars(hass: HomeAssistant, entry: ForchheimConfigEntry) -> None:
+    """Keep calendars available without showing their on/off state on a device."""
+    registry = er.async_get(hass)
+    for entity in er.async_entries_for_config_entry(registry, entry.entry_id):
+        if (
+            entity.domain == Platform.CALENDAR
+            and entity.unique_id.startswith("waste_calendar")
+            and entity.device_id is not None
+        ):
+            registry.async_update_entity(entity.entity_id, device_id=None)

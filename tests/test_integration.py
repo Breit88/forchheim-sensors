@@ -11,6 +11,7 @@ from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.forchheim_sensors import (
+    _detach_waste_calendars,
     _sync_station_entities,
     _sync_waste_entities,
     async_migrate_entry,
@@ -512,7 +513,7 @@ async def test_entry_setup_creates_citywide_sensors(hass: HomeAssistant) -> None
     assert entry.state is ConfigEntryState.LOADED
     registry = er.async_get(hass)
     entities = er.async_entries_for_config_entry(registry, entry.entry_id)
-    assert len(entities) == 19
+    assert len(entities) == 20
     assert {entity.domain for entity in entities} == {"sensor"}
 
     temperature = next(
@@ -619,7 +620,9 @@ async def test_selected_station_and_waste_entities(hass: HomeAssistant) -> None:
     assert not any(
         entity.unique_id.startswith(OTHER_STATION.uid) for entity in entities
     )
-    assert sum(entity.domain == "calendar" for entity in entities) == 1
+    calendars = [entity for entity in entities if entity.domain == "calendar"]
+    assert len(calendars) == 1
+    assert calendars[0].device_id is None
     for _, unique_id in waste_kinds:
         sensor = next(entity for entity in entities if entity.unique_id == unique_id)
         assert hass.states.get(sensor.entity_id).state == next_day.isoformat()
@@ -828,6 +831,28 @@ async def test_removed_waste_area_is_hidden_and_restored(hass: HomeAssistant) ->
     )
     _sync_waste_entities(hass, entry)
     assert registry.async_get(old.entity_id).disabled_by is None
+
+
+async def test_existing_waste_calendar_is_removed_from_device_page(
+    hass: HomeAssistant,
+) -> None:
+    """Keep the calendar entity while hiding its on/off state from the device."""
+    entry = MockConfigEntry(domain=DOMAIN, version=4, unique_id=CITY_UNIQUE_ID)
+    entry.add_to_hass(hass)
+    device = dr.async_get(hass).async_get_or_create(
+        config_entry_id=entry.entry_id,
+        identifiers={(DOMAIN, "waste_collection")},
+    )
+    registry = er.async_get(hass)
+    calendar = registry.async_get_or_create(
+        "calendar",
+        DOMAIN,
+        "waste_calendar",
+        config_entry=entry,
+        device_id=device.id,
+    )
+    _detach_waste_calendars(hass, entry)
+    assert registry.async_get(calendar.entity_id).device_id is None
 
 
 async def test_migrate_removes_legacy_charging_entities(hass: HomeAssistant) -> None:
