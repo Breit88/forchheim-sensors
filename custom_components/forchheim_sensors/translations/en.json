@@ -8,19 +8,21 @@
         "data": {
           "scan_interval": "Update interval",
           "stations": "Measurement stations",
-          "waste_enabled": "Include waste collection dates"
+          "waste_enabled": "Include waste collection dates",
+          "waste_selection": "Waste calendar street selection"
         },
         "data_description": {
           "scan_interval": "Seconds between live updates",
           "stations": "Choose stations. All measurements from each station are included together.",
-          "waste_enabled": "Uses the Home coordinates once to find the collection area. An unambiguous match is selected automatically; otherwise you choose manually."
+          "waste_enabled": "Creates a calendar and five date sensors for the selected collection area.",
+          "waste_selection": "Automatic uses the Home coordinates once. Manual lists all streets and localities without an address lookup."
         }
       },
       "waste": {
         "title": "Choose collection area",
         "description": "Choose your street or locality. Some streets are split into collection sections.",
         "data": {
-          "waste_location": "Street or locality"
+          "waste_locations": "Streets or localities"
         }
       }
     },
@@ -44,18 +46,20 @@
         "data": {
           "scan_interval": "Update interval",
           "stations": "Measurement stations",
-          "waste_enabled": "Include waste collection dates"
+          "waste_enabled": "Include waste collection dates",
+          "waste_selection": "Waste calendar street selection"
         },
         "data_description": {
           "scan_interval": "Seconds between requests",
           "stations": "Only selected stations provide measurement entities.",
-          "waste_enabled": "Uses the Home coordinates once to find the matching waste calendar. Multiple matches require manual selection."
+          "waste_enabled": "Enable or disable the waste calendar.",
+          "waste_selection": "Manual lists all streets and localities. Automatic uses the Home coordinates once."
         }
       },
       "waste": {
         "title": "Choose collection area",
         "data": {
-          "waste_location": "Street or locality"
+          "waste_locations": "Streets or localities"
         }
       }
     },

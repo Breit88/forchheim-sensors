@@ -26,6 +26,15 @@ Messwerte werden im eingestellten Intervall von 60 bis 3600 Sekunden
 aktualisiert. Stationslisten, Orte, Haltestellen und Verkehrsprofile werden bis
 zu sechs Stunden gecacht; Baustellen bis zu 15 Minuten.
 
+## Abfallkalender zeigt keine neuen Termine
+
+Prüfe unter **Geräte & Dienste → Digitales Forchheim** das Gerät des betroffenen
+Abfuhrbereichs. Der Sensor **Abfallkalender Abrufstatus** zeigt, ob der letzte
+ICS-Abruf erfolgreich war. **Abfallkalender zuletzt geladen** zeigt den letzten
+erfolgreichen Abruf seit dem Start von Home Assistant. Bereits geladene Termine
+bleiben bei einem späteren Abruffehler sichtbar. Die gewählten Straßen können
+unter **Konfigurieren** geprüft oder geändert werden.
+
 ## Diagramme bleiben leer
 
 Prüfe, ob die gewählte Entität einen numerischen Wert liefert und nicht in der

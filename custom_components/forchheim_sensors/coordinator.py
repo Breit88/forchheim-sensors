@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -15,11 +15,10 @@ from .api import ForchheimApiClient, ForchheimApiError
 from .const import (
     CONF_SCAN_INTERVAL,
     CONF_STATIONS,
-    CONF_WASTE_LOCATION,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
 )
-from .models import CityData, TrafficSnapshot
+from .models import CityData, TrafficSnapshot, WasteEvent
 from .parser import ForchheimInvalidResponseError
 
 _LOGGER = logging.getLogger(__name__)
@@ -39,6 +38,7 @@ class ForchheimDataUpdateCoordinator(DataUpdateCoordinator[CityData]):
         """Initialize the coordinator."""
         self.config_entry = entry
         self.client = client
+        self.waste_coordinators: dict[str, ForchheimWasteUpdateCoordinator] = {}
         interval = int(entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL))
         super().__init__(
             hass,
@@ -58,12 +58,6 @@ class ForchheimDataUpdateCoordinator(DataUpdateCoordinator[CityData]):
                 if selected is None or station.uid in selected
             ]
             now = dt_util.now()
-            waste_location = self.config_entry.options.get(CONF_WASTE_LOCATION)
-            waste_request = (
-                self.client.async_get_waste_events(waste_location)
-                if waste_location
-                else asyncio.sleep(0, result=())
-            )
             results = await asyncio.gather(
                 self.client.async_get_station_measurements(station_uids)
                 if station_uids
@@ -71,7 +65,6 @@ class ForchheimDataUpdateCoordinator(DataUpdateCoordinator[CityData]):
                 self.client.async_get_public_places(),
                 self.client.async_get_construction_sites(),
                 self.client.async_get_traffic(now.weekday() >= 5, now.hour),
-                waste_request,
                 return_exceptions=True,
             )
             (
@@ -79,7 +72,6 @@ class ForchheimDataUpdateCoordinator(DataUpdateCoordinator[CityData]):
                 places_result,
                 construction_result,
                 traffic_result,
-                waste_result,
             ) = results
             if isinstance(measurements_result, Exception):
                 raise measurements_result
@@ -108,11 +100,6 @@ class ForchheimDataUpdateCoordinator(DataUpdateCoordinator[CityData]):
                 )
             else:
                 traffic = traffic_result
-            if isinstance(waste_result, Exception):
-                _LOGGER.warning("Unable to update waste calendar: %s", waste_result)
-                waste_events = previous.waste_events if previous else ()
-            else:
-                waste_events = waste_result
             places = [place for place in places if "Ladesäule" not in place.category]
             return CityData(
                 stations=tuple(stations),
@@ -122,9 +109,33 @@ class ForchheimDataUpdateCoordinator(DataUpdateCoordinator[CityData]):
                 transit_stops=tuple(transit),
                 construction_sites=tuple(construction),
                 traffic=traffic,
-                waste_events=waste_events,
             )
         except (ForchheimApiError, ForchheimInvalidResponseError) as err:
             raise UpdateFailed(
                 f"Unable to update Forchheim public data: {err}"
             ) from err
+
+
+class ForchheimWasteUpdateCoordinator(DataUpdateCoordinator[tuple[WasteEvent, ...]]):
+    """Refresh one collection area independently of city measurements."""
+
+    def __init__(
+        self, hass: HomeAssistant, client: ForchheimApiClient, path: str
+    ) -> None:
+        super().__init__(
+            hass,
+            logger=_LOGGER,
+            name=f"{DOMAIN}_waste_{path}",
+            update_interval=timedelta(hours=6),
+        )
+        self.client = client
+        self.path = path
+        self.last_successful_update: datetime | None = None
+
+    async def _async_update_data(self) -> tuple[WasteEvent, ...]:
+        try:
+            events = await self.client.async_get_waste_events(self.path)
+        except (ForchheimApiError, ForchheimInvalidResponseError) as err:
+            raise UpdateFailed(f"Unable to update waste calendar: {err}") from err
+        self.last_successful_update = dt_util.utcnow()
+        return events

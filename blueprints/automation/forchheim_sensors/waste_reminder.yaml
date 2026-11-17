@@ -1,0 +1,63 @@
+blueprint:
+  name: Forchheim Abfalltermine – Erinnerung
+  description: >-
+    Erinnert vor einem Abholtermin aus einem Forchheimer Abfallkalender.
+    In der Benachrichtigungsaktion kann
+    {{ trigger.calendar_event.summary }} als Abfallart verwendet werden.
+    Ein Versatz von -05:00:00 löst um 19 Uhr am Vortag aus.
+  domain: automation
+  input:
+    waste_calendar:
+      name: Abfallkalender
+      selector:
+        entity:
+          filter:
+            domain: calendar
+    reminder_offset:
+      name: Zeitversatz zum Tagesbeginn
+      description: "-05:00:00 bedeutet 19 Uhr am Vortag."
+      default: "-05:00:00"
+      selector:
+        text:
+    waste_types:
+      name: Abfallarten
+      default:
+        - Restmülltonne
+        - Singletonne (Restmüll)
+        - Biotonne
+        - Papiertonne
+        - Gelbe Tonne
+      selector:
+        select:
+          multiple: true
+          options:
+            - Restmülltonne
+            - Singletonne (Restmüll)
+            - Biotonne
+            - Papiertonne
+            - Gelbe Tonne
+    notification_actions:
+      name: Benachrichtigung
+      description: >-
+        Aktion zum Versenden der Erinnerung. Im Nachrichtentext kann
+        {{ trigger.calendar_event.summary }} verwendet werden.
+      selector:
+        action:
+
+variables:
+  selected_waste_types: !input waste_types
+
+triggers:
+  - trigger: calendar
+    entity_id: !input waste_calendar
+    event: start
+    offset: !input reminder_offset
+
+conditions:
+  - condition: template
+    value_template: "{{ trigger.calendar_event.summary in selected_waste_types }}"
+
+actions: !input notification_actions
+
+mode: parallel
+max: 10

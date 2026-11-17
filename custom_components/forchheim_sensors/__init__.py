@@ -12,10 +12,11 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import ForchheimApiClient
-from .const import CITY_UNIQUE_ID, CONF_STATIONS, DOMAIN
-from .coordinator import ForchheimDataUpdateCoordinator
+from .const import CITY_UNIQUE_ID, CONF_STATIONS, CONF_WASTE_LOCATION, DOMAIN
+from .coordinator import ForchheimDataUpdateCoordinator, ForchheimWasteUpdateCoordinator
+from .waste import configured_waste_locations, waste_entity_suffix
 
-PLATFORMS = [Platform.SENSOR, Platform.CALENDAR]
+PLATFORMS = [Platform.SENSOR, Platform.CALENDAR, Platform.GEO_LOCATION]
 _STATION_ENTITY_ID = re.compile(r"^(\d+-\d+)_")
 
 type ForchheimConfigEntry = ConfigEntry[ForchheimDataUpdateCoordinator]
@@ -65,8 +66,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ForchheimConfigEntry) ->
     """Set up Forchheim Sensors from a config entry."""
     client = ForchheimApiClient(async_get_clientsession(hass))
     coordinator = ForchheimDataUpdateCoordinator(hass, entry, client)
-    await coordinator.async_config_entry_first_refresh()
-    if CONF_STATIONS not in entry.options:
+    waste_paths = configured_waste_locations(entry.options)
+    if waste_paths:
+        await coordinator.async_refresh()
+    else:
+        await coordinator.async_config_entry_first_refresh()
+    for path in waste_paths:
+        waste = ForchheimWasteUpdateCoordinator(hass, client, path)
+        coordinator.waste_coordinators[path] = waste
+        await waste.async_refresh()
+    if coordinator.data is not None and CONF_STATIONS not in entry.options:
         hass.config_entries.async_update_entry(
             entry,
             options={
@@ -74,7 +83,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ForchheimConfigEntry) ->
                 CONF_STATIONS: [station.uid for station in coordinator.data.stations],
             },
         )
-    _sync_station_entities(hass, entry, set(entry.options[CONF_STATIONS]))
+    if coordinator.data is not None:
+        _sync_station_entities(hass, entry, set(entry.options.get(CONF_STATIONS, ())))
+    _sync_waste_entities(hass, entry)
+    _detach_waste_calendars(hass, entry)
     entry.runtime_data = coordinator
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(_async_reload_entry))
@@ -108,3 +120,46 @@ def _sync_station_entities(
                 entity.entity_id,
                 disabled_by=er.RegistryEntryDisabler.INTEGRATION,
             )
+
+
+def _sync_waste_entities(hass: HomeAssistant, entry: ForchheimConfigEntry) -> None:
+    """Hide removed collection areas and restore them when selected again."""
+    primary = entry.options.get(CONF_WASTE_LOCATION)
+    suffixes = {
+        waste_entity_suffix(path, primary)
+        for path in configured_waste_locations(entry.options)
+    }
+    keys = (
+        "calendar",
+        "restmuell",
+        "single",
+        "bio",
+        "papier",
+        "gelb",
+        "status",
+        "last_success",
+    )
+    selected_ids = {f"waste_{key}{suffix}" for suffix in suffixes for key in keys}
+    registry = er.async_get(hass)
+    for entity in er.async_entries_for_config_entry(registry, entry.entry_id):
+        if not entity.unique_id.startswith("waste_"):
+            continue
+        if entity.unique_id in selected_ids:
+            if entity.disabled_by is er.RegistryEntryDisabler.INTEGRATION:
+                registry.async_update_entity(entity.entity_id, disabled_by=None)
+        elif entity.disabled_by is None:
+            registry.async_update_entity(
+                entity.entity_id, disabled_by=er.RegistryEntryDisabler.INTEGRATION
+            )
+
+
+def _detach_waste_calendars(hass: HomeAssistant, entry: ForchheimConfigEntry) -> None:
+    """Keep calendars available without showing their on/off state on a device."""
+    registry = er.async_get(hass)
+    for entity in er.async_entries_for_config_entry(registry, entry.entry_id):
+        if (
+            entity.domain == Platform.CALENDAR
+            and entity.unique_id.startswith("waste_calendar")
+            and entity.device_id is not None
+        ):
+            registry.async_update_entity(entity.entity_id, device_id=None)

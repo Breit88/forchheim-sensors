@@ -52,6 +52,7 @@ Zusätzlich gibt es zusammenfassende Sensoren für:
 - Zahl der Parkmöglichkeiten
 - Zahl der Fahrradständer
 - Zahl der Spielplätze
+- Zahl der Bushaltestellen
 - Zahl der aktiven Baustellen
 - durchschnittliche Geschwindigkeit des aktuellen Verkehrsprofils in km/h
 - Zahl der Beobachtungen im aktuellen Verkehrsprofil
@@ -60,20 +61,33 @@ Zusätzlich gibt es zusammenfassende Sensoren für:
 - Entfernung zum nächsten Spielplatz in km
 - Entfernung zur nächsten aktiven Baustelle in km
 
-Die stadtweiten Zählwerte bleiben unabhängig von der Stationsauswahl und
-beschreiben weiterhin alle öffentlich verfügbaren Stationen.
+Die stadtweiten Zählwerte bleiben unabhängig von der Stationsauswahl. Für
+Bushaltestellen, Spielplätze und Baustellen zählen sie alle Orte innerhalb der
+Stadtgrenze Forchheims, unabhängig von deiner Home-Assistant-Position.
 
 Die Entfernungssensoren enthalten zusätzliche Attribute wie Name, Adresse,
-Koordinaten und bei Haltestellen die verfügbaren Linien. Der Baustellensensor
-führt außerdem Details zu bis zu 20 aktiven Baustellen als Attribute.
+Koordinaten und bei Haltestellen die verfügbaren Linien. Die Zählsensoren für
+Bushaltestellen und Spielplätze enthalten vollständige Namenslisten; der
+Baustellen-Zählsensor enthält die Details aller aktiven Baustellen.
+
+Zusätzlich legt die Integration für jede Bushaltestelle, jeden Spielplatz und
+jede aktive Baustelle mit Koordinaten eine `geo_location`-Entität an. Sie sind
+auf der Home-Assistant-Karte oder einer Karten-Karte sichtbar. Ihre Quellen
+heißen `forchheim_sensors_bus`, `forchheim_sensors_playground` und
+`forchheim_sensors_construction`. Wenn ein Ort aus der öffentlichen Quelle
+verschwindet, entfernt die Integration seinen Kartenpunkt. Die bestehenden
+Entfernungssensoren zeigen weiterhin den jeweils nächstgelegenen Ort.
 
 ## Abfalltermine
 
-Wenn Abfalltermine aktiviert wurden, gibt es ein Gerät **Abfalltermine
-Forchheim** mit einem Kalender und fünf Datumssensoren für die jeweils nächste
-Singletonne, Restmülltonne, Biotonne, Papiertonne und Gelbe Tonne
-(Kunststoffsammlung). Der ausgewählte Abfuhrbereich kann unter **Konfigurieren** geändert
-werden. Siehe [Abfalltermine](waste.md).
+Für jeden ausgewählten Abfuhrbereich gibt es ein eigenes Gerät mit fünf
+Datumssensoren für die jeweils nächste Singletonne,
+Restmülltonne, Biotonne, Papiertonne und Gelbe Tonne (Kunststoffsammlung).
+Zwei Diagnose-Sensoren zeigen den Abrufstatus und den Zeitpunkt des letzten
+erfolgreichen Abrufs. Die Abfuhrbereiche können unter **Konfigurieren** geändert
+werden. Der Kalender bleibt als eigenständige Kalenderentität für Karten und
+Automationen verfügbar. Sein Ja/Nein-Zustand wird nicht auf der Geräteseite
+angezeigt. Siehe [Abfalltermine](waste.md).
 
 ## Bewusst nicht enthalten
 
