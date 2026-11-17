@@ -628,9 +628,10 @@ async def test_selected_station_and_waste_entities(hass: HomeAssistant) -> None:
         sensor = next(entity for entity in entities if entity.unique_id == unique_id)
         state = hass.states.get(sensor.entity_id)
         assert state.state == next_day.isoformat()
-        assert state.attributes["entity_picture"] == WASTE_PICTURES[
-            unique_id.removeprefix("waste_")
-        ]
+        assert (
+            state.attributes["entity_picture"]
+            == WASTE_PICTURES[unique_id.removeprefix("waste_")]
+        )
     status = next(entity for entity in entities if entity.unique_id == "waste_status")
     assert hass.states.get(status.entity_id).state == "Abruf fehlgeschlagen"
     last_success = next(
