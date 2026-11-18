@@ -13,9 +13,9 @@ PLACE_PICTURES = {
 }
 
 WASTE_PICTURES = {
-    "restmuell": f"{ICON_URL}/bin_black.png",
-    "single": f"{ICON_URL}/bin_black.png",
-    "bio": f"{ICON_URL}/bin_green.svg",
-    "papier": f"{ICON_URL}/bin_blue.svg",
-    "gelb": f"{ICON_URL}/bin_yellow.svg",
+    "restmuell": f"{ICON_URL}/bin_black_custom.png",
+    "single": f"{ICON_URL}/bin_black_custom.png",
+    "bio": f"{ICON_URL}/bin_green_custom.png",
+    "papier": f"{ICON_URL}/bin_blue_custom.png",
+    "gelb": f"{ICON_URL}/bin_yellow_custom.png",
 }
