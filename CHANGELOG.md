@@ -2,6 +2,13 @@
 
 Alle veröffentlichten Änderungen dieses Projekts werden hier zusammengefasst.
 
+## 0.4.4 – 2026-11-18
+
+- die bisherigen Mülltonnenbilder durch vier vom Projektinhaber bereitgestellte
+  PNGs ersetzt; Zuordnung Schwarz = Restmüll und Singletonne, Grün = Bio,
+  Gelb = Kunststoff, Blau = Papier
+- neue Bilddateinamen verhindern die Anzeige alter Browser-Cache-Versionen
+
 ## 0.4.3 – 2026-11-18
 
 - Bildsymbole für Baustellen, Spielplätze und Wetterstationen auf der Karte
