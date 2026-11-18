@@ -2,7 +2,7 @@
 
 Alle veröffentlichten Änderungen dieses Projekts werden hier zusammengefasst.
 
-## 0.4.3 – 2026-11-17
+## 0.4.3 – 2026-11-18
 
 - Bildsymbole für Baustellen, Spielplätze und Wetterstationen auf der Karte
   ergänzt; Wetterstationen als eigene Kartenpunkte verfügbar gemacht
