@@ -1,4 +1,4 @@
-"""Map all public bus stops, playgrounds and construction sites in Forchheim."""
+"""Map public bus stops, playgrounds, construction and weather stations."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import ForchheimConfigEntry
 from .geography import distance_km
+from .icon_assets import PLACE_PICTURES
 from .models import CityData, Place
 
 PARALLEL_UPDATES = 0
@@ -20,11 +21,12 @@ SOURCES = {
     "bus": "forchheim_sensors_bus",
     "playground": "forchheim_sensors_playground",
     "construction": "forchheim_sensors_construction",
+    "weather": "forchheim_sensors_weather",
 }
 
 
 def _visible_places(data: CityData) -> dict[str, tuple[str, str, Place]]:
-    """Return each distinct point in the three citywide public feeds."""
+    """Return each distinct city point and weather station."""
     result: dict[str, tuple[str, str, Place]] = {}
     groups = (
         (
@@ -34,6 +36,22 @@ def _visible_places(data: CityData) -> dict[str, tuple[str, str, Place]]:
         ),
         ("playground", "Spielplatz", iter(data.playgrounds)),
         ("construction", "Baustelle", iter(data.construction_sites)),
+        (
+            "weather",
+            "Wetterstation",
+            (
+                Place(
+                    station.uid,
+                    "weather",
+                    station.name,
+                    station.latitude,
+                    station.longitude,
+                    note=station.model,
+                )
+                for station in data.stations
+                if station.category == "weather"
+            ),
+        ),
     )
     for category, label, places in groups:
         for place in places:
@@ -99,6 +117,14 @@ class ForchheimPlaceEvent(GeolocationEvent):
         home_longitude: float,
     ) -> None:
         self._attr_source = source
+        kind = source.removeprefix("forchheim_sensors_")
+        self._attr_entity_picture = PLACE_PICTURES.get(kind)
+        self._attr_icon = {
+            "bus": "mdi:bus-stop",
+            "playground": "mdi:slide",
+            "construction": "mdi:traffic-cone",
+            "weather": "mdi:weather-windy",
+        }.get(kind)
         self._label = label
         self._home_latitude = home_latitude
         self._home_longitude = home_longitude

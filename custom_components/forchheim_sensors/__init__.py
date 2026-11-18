@@ -3,13 +3,16 @@
 from __future__ import annotations
 
 import re
+from pathlib import Path
 
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.typing import ConfigType
 
 from .api import ForchheimApiClient
 from .const import CITY_UNIQUE_ID, CONF_STATIONS, CONF_WASTE_LOCATION, DOMAIN
@@ -20,6 +23,15 @@ PLATFORMS = [Platform.SENSOR, Platform.CALENDAR, Platform.GEO_LOCATION]
 _STATION_ENTITY_ID = re.compile(r"^(\d+-\d+)_")
 
 type ForchheimConfigEntry = ConfigEntry[ForchheimDataUpdateCoordinator]
+
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Serve bundled icons from Home Assistant without external image hosts."""
+    icon_dir = Path(__file__).parent / "icons"
+    await hass.http.async_register_static_paths(
+        [StaticPathConfig(f"/{DOMAIN}/icons", str(icon_dir), cache_headers=True)]
+    )
+    return True
 
 
 async def async_migrate_entry(hass: HomeAssistant, entry: ForchheimConfigEntry) -> bool:

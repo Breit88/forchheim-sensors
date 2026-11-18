@@ -22,8 +22,8 @@ Nach Download und Neustart:
 - Luft- und Oberflächentemperatur des auswählbaren Fahrbahnsensors an der Lila Brücke
 - zeitabhängige Verkehrsprofile für Werktage und Wochenenden
 - Anzahl von Parkmöglichkeiten, Fahrradständern, Bushaltestellen und Spielplätzen
-- alle Bushaltestellen, Spielplätze und aktiven Baustellen im Stadtgebiet als
-  Kartenpunkte; vollständige Listen in den Übersichts-Sensoren
+- alle Bushaltestellen, Spielplätze, aktiven Baustellen und Wetterstationen
+  im Stadtgebiet als Kartenpunkte; vollständige Listen in den Übersichts-Sensoren
 - Entfernung zur nächsten Bus- und Bahnhaltestelle, Baustelle und zum nächsten
   Spielplatz, ausgehend von der Home-Assistant-Position
 - Zustandsklassen für alle numerischen Messwerte, damit Recorder-Verläufe und
@@ -78,8 +78,15 @@ Ja/Nein-Zustand des Kalenders wird dort nicht mehr angezeigt.
 Alle Orte im Stadtgebiet findest du auf der Home-Assistant-Karte oder in einer
 Karten-Karte. Die Kartenpunkte sind nach den Quellen
 `forchheim_sensors_bus`, `forchheim_sensors_playground` und
-`forchheim_sensors_construction` gruppiert. Die Übersichts-Sensoren enthalten
-die vollständigen Namen beziehungsweise Baustellendetails als Attribute.
+`forchheim_sensors_construction` und `forchheim_sensors_weather` gruppiert.
+Baustellen, Spielplätze und Wetterstationen haben eigene Bildsymbole. Die
+Zählsensoren für Bushaltestellen, Spielplätze und Baustellen enthalten die
+vollständigen Namen beziehungsweise Baustellendetails als Attribute.
+
+Die fünf Abfall-Terminsensoren zeigen Tonnenbilder: Schwarz für Restmüll und
+Singletonne, Gelb für Kunststoff, Blau für Papier und Grün für Bio. Die
+Bildsymbole basieren auf den vom Projektinhaber bereitgestellten
+[Icons8-Grafiken](https://icons8.com/).
 
 ## Verlauf und Diagramme
 

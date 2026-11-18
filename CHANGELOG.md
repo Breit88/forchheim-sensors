@@ -2,6 +2,14 @@
 
 Alle veröffentlichten Änderungen dieses Projekts werden hier zusammengefasst.
 
+## 0.4.3 – 2026-11-18
+
+- Bildsymbole für Baustellen, Spielplätze und Wetterstationen auf der Karte
+  ergänzt; Wetterstationen als eigene Kartenpunkte verfügbar gemacht
+- Abfall-Terminsensoren mit schwarzen, gelben, blauen und grünen
+  Mülltonnenbildern nach Abfallart versehen
+- Bilddateien lokal über die Integration bereitgestellt
+
 ## 0.4.2 – 2026-11-17
 
 - Ja/Nein-Zustand des Abfallkalenders von der Geräteseite entfernt; bestehende

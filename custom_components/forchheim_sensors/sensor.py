@@ -40,6 +40,7 @@ from .const import (
 )
 from .coordinator import ForchheimDataUpdateCoordinator, ForchheimWasteUpdateCoordinator
 from .geography import distance_km
+from .icon_assets import WASTE_PICTURES
 from .models import CityData, Place, Station
 from .waste import configured_waste_locations, waste_entity_suffix
 
@@ -265,6 +266,8 @@ class ForchheimWasteSensor(
             else f"Nächste {label} {coordinator.path.rsplit('/', 1)[-1]}"
         )
         self._attr_unique_id = f"waste_{key}{suffix}"
+        self._attr_icon = "mdi:trash-can"
+        self._attr_entity_picture = WASTE_PICTURES[key]
         self._attr_device_info = _waste_device_info(coordinator.path, suffix)
 
     @property

@@ -70,13 +70,30 @@ Koordinaten und bei Haltestellen die verfügbaren Linien. Die Zählsensoren für
 Bushaltestellen und Spielplätze enthalten vollständige Namenslisten; der
 Baustellen-Zählsensor enthält die Details aller aktiven Baustellen.
 
-Zusätzlich legt die Integration für jede Bushaltestelle, jeden Spielplatz und
-jede aktive Baustelle mit Koordinaten eine `geo_location`-Entität an. Sie sind
+Zusätzlich legt die Integration für jede Bushaltestelle, jeden Spielplatz, jede
+aktive Baustelle und jede Wetterstation mit Koordinaten eine
+`geo_location`-Entität an. Sie sind
 auf der Home-Assistant-Karte oder einer Karten-Karte sichtbar. Ihre Quellen
 heißen `forchheim_sensors_bus`, `forchheim_sensors_playground` und
-`forchheim_sensors_construction`. Wenn ein Ort aus der öffentlichen Quelle
+`forchheim_sensors_construction` sowie `forchheim_sensors_weather`.
+Baustellen, Spielplätze und Wetterstationen verwenden die bereitgestellten
+Bildsymbole. Wenn ein Ort aus der öffentlichen Quelle
 verschwindet, entfernt die Integration seinen Kartenpunkt. Die bestehenden
 Entfernungssensoren zeigen weiterhin den jeweils nächstgelegenen Ort.
+
+Für eine eigene Karten-Karte können die vier Quellen direkt ausgewählt werden:
+
+```yaml
+type: map
+geo_location_sources:
+  - forchheim_sensors_bus
+  - forchheim_sensors_playground
+  - forchheim_sensors_construction
+  - forchheim_sensors_weather
+```
+
+Bei den drei Bildquellen die Standard-Beschriftung beibehalten; die
+Karten-Karte verwendet dann das jeweilige Bildsymbol.
 
 ## Abfalltermine
 
@@ -88,6 +105,10 @@ erfolgreichen Abrufs. Die Abfuhrbereiche können unter **Konfigurieren** geände
 werden. Der Kalender bleibt als eigenständige Kalenderentität für Karten und
 Automationen verfügbar. Sein Ja/Nein-Zustand wird nicht auf der Geräteseite
 angezeigt. Siehe [Abfalltermine](waste.md).
+
+Die fünf Abholtermin-Sensoren verwenden Tonnenbilder in Schwarz (Restmüll und
+Singletonne), Gelb (Kunststoff), Blau (Papier) und Grün (Bio). Die Bilder
+werden von Home Assistant lokal bereitgestellt.
 
 ## Bewusst nicht enthalten
 
